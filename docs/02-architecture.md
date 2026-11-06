@@ -57,7 +57,8 @@ src/
     (marketing)/     public landing page
     (auth)/          login and registration
     (app)/           signed-in product: dashboard, jobs, cv, applications, interview, settings
-    api/v1/          route handlers (from Phase 3)
+    api/internal/    cron routes
+    auth/confirm/    email link handler
   components/
     ui/              shadcn/ui primitives
     layout/          shell, sidebar, top bar, navigation, logo
@@ -67,19 +68,20 @@ src/
     settings/        settings forms
   config/            site and navigation definitions
   lib/               utilities
-  server/            (from Phase 3) marked server-only
-    ai/              Anthropic client, prompts, schemas, usage metering
-    db/              typed queries
-    jobs/            job source adapters
-  proxy.ts           (from Phase 3) session refresh and route protection
+  server/            server code: env, Supabase clients, auth, profile
+    jobs/            providers, normalisation, duplicates, sync, search
+    ai/              (planned) Anthropic client, prompts, schemas, metering
+  types/             generated database types
+  proxy.ts           session refresh and route redirects
 supabase/
-  migrations/        (from Phase 3) versioned SQL
+  migrations/        versioned SQL
+tests/               unit, integration and end-to-end tests
 ```
 
 Rules:
 
 - Pages read data in Server Components. Mutations go through server actions, or through route handlers when they stream or are called by cron.
-- Anything under `src/server` imports `server-only`, so accidental client use fails the build.
+- Modules that hold credentials import `server-only`, so accidental client use fails the build.
 - `proxy.ts` is an optimistic check for redirects only. Authorisation is enforced again at the data layer by RLS and in each handler.
 
 ## 2.4 AI layer
@@ -144,13 +146,27 @@ Checked against the current Anthropic documentation for `claude-opus-5-5`:
 Each job source implements one adapter interface, so sources can be added or dropped without touching the rest of the code.
 
 ```ts
-interface JobSource {
+interface JobProvider {
   id: string;
-  search(query: JobQuery): Promise<NormalizedJob[]>;
+  name: string;
+  minSyncIntervalMs: number; // shortest gap the provider's terms allow
+  fetchJobs(): Promise<ProviderResult>;
 }
 ```
 
-Results are normalised and stored in a shared `jobs` table, with a fingerprint of company, title and location used to merge duplicates. The source's link and attribution are kept, as their terms usually require. Vercel Cron refreshes saved searches on a schedule. See [risks](09-risks-and-dependencies.md) for what each source allows.
+```mermaid
+flowchart LR
+    C[Vercel Cron] --> R[sync route]
+    R --> G{Allowed by<br/>job_sync_runs?}
+    G -->|No| X[Skip]
+    G -->|Yes| A[Provider adapter]
+    A --> N[Normalise]
+    N --> D[Plan duplicates]
+    D --> J[(jobs)]
+    U[Visitor] --> S[search_jobs] --> J
+```
+
+Searches read only our database and never call a provider. Provider limits are small (Remotive advises 4 requests a day) and their APIs offer few filters, so running everything against our own table meets both needs. Each sync normalises results, updates known jobs and skips duplicates using a fingerprint of company, title and locations. Every job keeps its provider, original URL and publication date. See [risks](09-risks-and-dependencies.md) for what each source allows.
 
 ## 2.6 Background work
 
@@ -159,7 +175,7 @@ Vercel functions have time limits, so anything long is split up:
 | Work | Approach |
 | ---- | -------- |
 | CV parsing | Runs after the upload response returns, with a `status` column the UI polls |
-| Saved-search refresh | Vercel Cron calling a secret-protected route |
+| Job sync | Vercel Cron calling a secret-protected route, once a day |
 | Bulk scoring | Message Batches, submitted by cron and collected by a later cron run |
 | Data export | Generated into private storage, with a signed link |
 
@@ -167,11 +183,11 @@ Vercel functions have time limits, so anything long is split up:
 
 | Environment | Hosting | Database |
 | ----------- | ------- | -------- |
-| Local | `npm run dev` | Supabase CLI (Docker) |
+| Local | `npm run dev` | Supabase CLI (Docker). See [setup](setup.md) |
 | Preview | Vercel preview per pull request | Shared staging project |
 | Production | Vercel | Production project, EU region |
 
-Secrets live in Vercel environment variables and in an uncommitted `.env.local`. Only values prefixed `NEXT_PUBLIC_` reach the browser, and those are limited to the Supabase URL and publishable key.
+Secrets live in Vercel environment variables and in an uncommitted `.env.local`. Only values prefixed `NEXT_PUBLIC_` can reach the browser, and those are limited to the Supabase URL and publishable key. Authentication runs in server actions, so no Supabase client is shipped to the browser yet.
 
 ## 2.8 Key decisions
 

@@ -1,6 +1,6 @@
 # JOB HUNT: project documentation
 
-The plan for JOB HUNT, an AI-powered job search and career management platform. These documents were written before any code and are the reference for every later phase.
+The plan for JOB HUNT, an AI-powered job search and career management platform. The plan was written before any code, and is kept up to date as phases are built.
 
 | # | Document | What it covers |
 | - | -------- | -------------- |
@@ -15,4 +15,6 @@ The plan for JOB HUNT, an AI-powered job search and career management platform. 
 | 9 | [Risks and dependencies](09-risks-and-dependencies.md) | Technical risks, external services, API limits |
 | 10 | [Open questions](10-open-questions.md) | Decisions needed, with the default assumed for each |
 
-**Status:** Phase 1 (planning) and Phase 2 (application foundation) are complete. See the [roadmap](07-roadmap.md).
+To run the project, see [setup](setup.md).
+
+**Status:** Phases 1 to 4 are complete. See the [roadmap](07-roadmap.md).

@@ -1,6 +1,15 @@
 # 5. Backend API endpoints
 
-All endpoints live under `/api/v1`, are planned for the phases shown in the [roadmap](07-roadmap.md), and none exist yet. Simple form mutations use server actions that share the same validation and service code. Route handlers are used where a stable URL is needed, such as streaming, uploads and cron.
+Two server routes exist today, and everything else here is planned for the phases shown in the [roadmap](07-roadmap.md).
+
+| Method | Path | Purpose | Auth |
+| ------ | ---- | ------- | ---- |
+| GET | `/auth/confirm` | Finish email confirmation and password reset links | Link token |
+| GET | `/api/internal/cron/sync-jobs` | Sync job providers, within their limits | `Authorization: Bearer $CRON_SECRET` |
+
+Sign-in, registration, profile changes and saving jobs are server actions in `src/server`. Job search reads the `search_jobs` database function from a Server Component.
+
+Planned endpoints live under `/api/v1`. Simple form mutations use server actions that share the same validation and service code. Route handlers are used where a stable URL is needed, such as streaming, uploads and cron.
 
 ## Conventions
 
@@ -56,12 +65,8 @@ Registration, sign-in and password reset use Supabase Auth directly, so they are
 
 | Method | Path | Purpose |
 | ------ | ---- | ------- |
-| GET | `/jobs/search` | Search sources and local jobs |
 | POST | `/jobs` | Add from text or URL |
 | GET | `/jobs/:id` | Job with analysis and latest match |
-| GET | `/saved-jobs` | List saved jobs |
-| PUT | `/saved-jobs/:jobId` | Save, hide or label |
-| DELETE | `/saved-jobs/:jobId` | Remove |
 | GET, POST | `/saved-searches` | List or create |
 | PATCH, DELETE | `/saved-searches/:id` | Update or delete |
 

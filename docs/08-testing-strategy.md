@@ -1,6 +1,6 @@
 # 8. Testing strategy
 
-Test tooling is installed in Phase 3, when there is logic to test. Phase 2 is verified by lint, type checks, the production build and manual checks at each breakpoint.
+Unit, integration and end-to-end tests run today, locally and in CI. See [setup](setup.md) for the commands. Lighthouse, accessibility scans and AI evaluation arrive with the features they cover.
 
 ## 8.1 Test levels
 

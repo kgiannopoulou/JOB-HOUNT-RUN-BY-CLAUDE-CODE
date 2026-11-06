@@ -1,6 +1,6 @@
 # 4. Application pages
 
-**Status:** ✅ exists now as a UI, with no backend. 🔜 planned.
+**Status:** ✅ working. 🟡 protected page with no feature behind it yet. 🔜 planned.
 
 ## Public
 
@@ -9,29 +9,30 @@
 | `/` | Landing | Explain the product and lead to registration | ✅ |
 | `/login` | Login | Sign in | ✅ |
 | `/register` | Registration | Create an account | ✅ |
-| `/forgot-password` | Forgot password | Request a reset email | 🔜 Phase 3 |
-| `/reset-password` | Reset password | Set a new password | 🔜 Phase 3 |
-| `/auth/callback` | OAuth callback | Finish sign-in (route handler) | 🔜 Phase 3 |
+| `/forgot-password` | Forgot password | Request a reset email | ✅ |
+| `/reset-password` | Reset password | Set a new password | ✅ |
+| `/auth/confirm` | Email links | Finish confirmation and reset links (route handler) | ✅ |
+| `/jobs` | Jobs | Search real listings. Public, because Remotive's terms forbid showing its jobs to collect signups | ✅ |
 | `/privacy`, `/terms` | Legal | Privacy notice and terms | 🔜 Phase 11 |
 
 ## Signed in
 
 | Route | Page | Purpose | Status |
 | ----- | ---- | ------- | ------ |
-| `/dashboard` | Dashboard | Search status, next actions, recent activity | ✅ placeholder |
-| `/jobs` | Jobs | Search and browse | ✅ placeholder |
-| `/jobs/new` | Add job | Add from URL or pasted text | 🔜 Phase 5 |
-| `/jobs/[id]` | Job detail | Analysis, match score, actions | 🔜 Phase 5 |
+| `/dashboard` | Dashboard | Real counts and next steps | ✅ |
+| `/jobs/saved` | Saved jobs | The user's saved jobs | ✅ |
+| `/jobs/new` | Add job | Add from URL or pasted text | 🔜 Phase 6 |
+| `/jobs/[id]` | Job detail | Analysis, match score, actions | 🔜 Phase 6 |
 | `/jobs/[id]/cover-letter` | Cover letter | Generate and edit | 🔜 Phase 7 |
-| `/cv` | CV library | Master CV and versions | ✅ placeholder |
-| `/cv/[id]` | CV editor | Review parsed data and edit | 🔜 Phase 4 |
+| `/cv` | CV library | Master CV and versions | 🟡 |
+| `/cv/[id]` | CV editor | Review parsed data and edit | 🔜 Phase 5 |
 | `/cv/[id]/tailor/[jobId]` | Tailor | Accept or reject suggestions | 🔜 Phase 6 |
-| `/applications` | Applications | Pipeline board and table | ✅ placeholder |
+| `/applications` | Applications | Pipeline board and table | 🟡 |
 | `/applications/[id]` | Application detail | Timeline, documents, notes | 🔜 Phase 8 |
-| `/interview` | Interview preparation | Sessions and question sets | ✅ placeholder |
+| `/interview` | Interview preparation | Sessions and question sets | 🟡 |
 | `/interview/[id]` | Practice session | Answer and get feedback | 🔜 Phase 9 |
 | `/analytics` | Analytics | Funnel, trends, skill gaps | 🔜 Phase 10 |
-| `/settings` | Settings | Profile, preferences, appearance, privacy | ✅ placeholder |
+| `/settings` | Settings | Profile, preferences and appearance work. Data export and deletion arrive in Phase 11 | ✅ |
 
 ## Navigation
 
