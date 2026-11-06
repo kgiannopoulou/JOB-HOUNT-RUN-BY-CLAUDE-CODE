@@ -20,26 +20,26 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { requireUser } from "@/server/auth/user";
+import { createClient } from "@/server/supabase/server";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
 const setupSteps = [
   {
-    title: "Add your CV",
-    text: "Upload the CV that everything else builds on.",
-    href: "/cv",
-    phase: 4,
-  },
-  {
     title: "Set your job preferences",
     text: "Tell us which roles and locations you want.",
     href: "/settings",
-    phase: 3,
   },
   {
     title: "Find your first role",
-    text: "Search for a job or paste in a listing.",
+    text: "Search real listings and save the ones you like.",
     href: "/jobs",
+  },
+  {
+    title: "Add your CV",
+    text: "Upload the CV that everything else builds on.",
+    href: "/cv",
     phase: 5,
   },
   {
@@ -50,12 +50,25 @@ const setupSteps = [
   },
 ];
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const user = await requireUser("/dashboard");
+  const supabase = await createClient();
+
+  const count = { count: "exact", head: true } as const;
+  const [profile, saved, applications, interviews] = await Promise.all([
+    supabase.from("profiles").select("full_name").eq("id", user.id).single(),
+    supabase.from("saved_jobs").select("job_id", count),
+    supabase.from("applications").select("id", count),
+    supabase.from("interview_sessions").select("id", count),
+  ]);
+
+  const firstName = profile.data?.full_name.split(" ")[0];
+
   return (
     <>
       <PageHeader
-        title="Dashboard"
-        description="Your job search at a glance. Figures appear here once your account is connected."
+        title={firstName ? `Welcome, ${firstName}` : "Dashboard"}
+        description="Your job search at a glance."
       />
 
       <section
@@ -64,22 +77,25 @@ export default function DashboardPage() {
       >
         <StatCard
           label="Saved jobs"
+          value={String(saved.count ?? 0)}
           hint="Roles you are considering"
           icon={BriefcaseBusiness}
         />
         <StatCard
           label="Applications"
+          value={String(applications.count ?? 0)}
           hint="Sent so far"
           icon={KanbanSquare}
         />
         <StatCard
           label="Interviews"
-          hint="Scheduled or completed"
+          value={String(interviews.count ?? 0)}
+          hint="Practice sessions so far"
           icon={MessagesSquare}
         />
         <StatCard
           label="Response rate"
-          hint="Applications that got a reply"
+          hint="Shown once you have applications"
           icon={Reply}
         />
       </section>
@@ -111,9 +127,11 @@ export default function DashboardPage() {
                         {step.text}
                       </span>
                     </span>
-                    <span className="hidden sm:block">
-                      <PhaseBadge phase={step.phase} />
-                    </span>
+                    {step.phase && (
+                      <span className="hidden sm:block">
+                        <PhaseBadge phase={step.phase} />
+                      </span>
+                    )}
                     <ChevronRight
                       className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
                       aria-hidden

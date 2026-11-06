@@ -118,7 +118,7 @@ export default function LandingPage() {
               size="lg"
               className="h-11 px-5 text-base"
             >
-              <Link href="/dashboard">Preview the app</Link>
+              <Link href="/jobs">Browse jobs</Link>
             </Button>
           </div>
         </div>

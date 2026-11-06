@@ -4,6 +4,7 @@ import { FileCheck2, FileText, ScanText, Upload } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { PhaseBadge } from "@/components/shared/phase-badge";
+import { requireUser } from "@/server/auth/user";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -33,7 +34,9 @@ const steps = [
   },
 ];
 
-export default function CvPage() {
+export default async function CvPage() {
+  await requireUser("/cv");
+
   return (
     <>
       <PageHeader
@@ -44,13 +47,13 @@ export default function CvPage() {
       <EmptyState
         icon={FileText}
         title="No CV uploaded"
-        description="Your master CV will appear here. Uploading connects in Phase 4."
+        description="Your master CV will appear here. Uploading connects in Phase 5."
       >
         <div className="flex flex-col items-center gap-2">
           <Button size="lg" disabled>
             <Upload data-icon="inline-start" /> Upload CV
           </Button>
-          <PhaseBadge phase={4} />
+          <PhaseBadge phase={5} />
         </div>
       </EmptyState>
 

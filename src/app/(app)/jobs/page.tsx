@@ -1,89 +1,55 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import { BriefcaseBusiness, MapPin, Search } from "lucide-react";
 
-import { EmptyState } from "@/components/shared/empty-state";
+import { JobFiltersForm } from "@/components/jobs/job-filters-form";
+import { JobResults, JobResultsSkeleton } from "@/components/jobs/job-results";
+import { JobsTabs } from "@/components/jobs/jobs-tabs";
 import { PageHeader } from "@/components/shared/page-header";
-import { PhaseBadge } from "@/components/shared/phase-badge";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { jobFiltersQuery, parseJobFilters } from "@/lib/job-filters";
+import { providerDetails } from "@/lib/job-providers";
+import { getLocationOptions } from "@/server/jobs/search";
+import { createClient } from "@/server/supabase/server";
 
 export const metadata: Metadata = { title: "Jobs" };
 
-const filters = ["Remote", "Hybrid", "On-site", "Junior", "Mid-level", "Senior"];
+export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
+  const filters = parseJobFilters(await searchParams);
+  const supabase = await createClient();
+  const locations = await getLocationOptions(supabase);
+  const remotive = providerDetails.remotive;
 
-export default function JobsPage() {
   return (
     <>
       <PageHeader
         title="Jobs"
-        description="Search for roles, or add one you found elsewhere, and see how well you fit."
-      >
-        <Button disabled size="lg">
-          Add a job
-        </Button>
-      </PageHeader>
-
-      <Card>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-medium">Search</h2>
-            <PhaseBadge phase={5} />
-          </div>
-          <form className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
-            <div className="space-y-2">
-              <Label htmlFor="keywords">Keywords</Label>
-              <div className="relative">
-                <Search
-                  className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden
-                />
-                <Input
-                  id="keywords"
-                  placeholder="Job title or skill"
-                  className="h-10 pl-9"
-                  disabled
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <div className="relative">
-                <MapPin
-                  className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden
-                />
-                <Input
-                  id="location"
-                  placeholder="City, country or remote"
-                  className="h-10 pl-9"
-                  disabled
-                />
-              </div>
-            </div>
-            <Button type="button" size="lg" className="h-10" disabled>
-              Search
-            </Button>
-          </form>
-          <ul className="flex flex-wrap gap-2" aria-label="Filters">
-            {filters.map((filter) => (
-              <li key={filter}>
-                <Badge variant="outline" className="opacity-60">
-                  {filter}
-                </Badge>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
-
-      <EmptyState
-        icon={BriefcaseBusiness}
-        title="No jobs yet"
-        description="Job search connects in Phase 5. Results will show a match score against your CV."
+        description="Search real listings. You can browse without an account, and sign in to save jobs."
       />
+      <JobsTabs current="/jobs" />
+
+      <div className="grid items-start gap-6 lg:grid-cols-[18rem_1fr]">
+        <JobFiltersForm filters={filters} locations={locations} />
+        <div className="min-w-0 space-y-4">
+          <Suspense
+            key={jobFiltersQuery(filters)}
+            fallback={<JobResultsSkeleton />}
+          >
+            <JobResults filters={filters} />
+          </Suspense>
+          <p className="text-xs text-muted-foreground">
+            Listings come from{" "}
+            <a
+              href={remotive.url}
+              target="_blank"
+              rel="noopener"
+              className="underline underline-offset-2"
+            >
+              {remotive.name}
+            </a>
+            , appear up to 24 hours after publication, and open on the original
+            site.
+          </p>
+        </div>
+      </div>
     </>
   );
 }

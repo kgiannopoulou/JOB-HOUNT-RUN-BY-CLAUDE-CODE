@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { PhaseBadge } from "@/components/shared/phase-badge";
+import { requireUser } from "@/server/auth/user";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = { title: "Applications" };
@@ -15,7 +16,9 @@ const stages = [
   "Closed",
 ];
 
-export default function ApplicationsPage() {
+export default async function ApplicationsPage() {
+  await requireUser("/applications");
+
   return (
     <>
       <PageHeader

@@ -1,10 +1,10 @@
-import Link from "next/link";
+import { Suspense } from "react";
 
 import { Logo } from "@/components/layout/logo";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { UserNav } from "@/components/layout/user-nav";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function AppTopbar() {
   return (
@@ -12,13 +12,10 @@ export function AppTopbar() {
       <MobileNav />
       <Logo href="/dashboard" className="md:hidden" />
       <div className="ml-auto flex items-center gap-2">
-        <Badge variant="secondary" className="hidden sm:inline-flex">
-          Preview, no account connected
-        </Badge>
         <ThemeToggle />
-        <Button asChild variant="outline" size="lg">
-          <Link href="/login">Sign in</Link>
-        </Button>
+        <Suspense fallback={<Skeleton className="size-9 rounded-full" />}>
+          <UserNav />
+        </Suspense>
       </div>
     </header>
   );

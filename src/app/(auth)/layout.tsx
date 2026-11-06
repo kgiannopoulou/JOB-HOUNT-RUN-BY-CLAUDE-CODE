@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Check } from "lucide-react";
 
 import { Logo } from "@/components/layout/logo";
@@ -38,7 +39,7 @@ export default function AuthLayout({
       >
         <div className="w-full max-w-sm">
           <Logo className="mb-8 lg:hidden" />
-          {children}
+          <Suspense>{children}</Suspense>
         </div>
       </main>
     </div>

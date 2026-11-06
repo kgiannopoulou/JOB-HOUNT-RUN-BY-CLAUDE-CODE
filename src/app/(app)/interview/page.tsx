@@ -4,6 +4,7 @@ import { BookOpenText, ListChecks, MessagesSquare, Mic } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { PhaseBadge } from "@/components/shared/phase-badge";
+import { requireUser } from "@/server/auth/user";
 import {
   Card,
   CardDescription,
@@ -31,7 +32,9 @@ const tools = [
   },
 ];
 
-export default function InterviewPage() {
+export default async function InterviewPage() {
+  await requireUser("/interview");
+
   return (
     <>
       <PageHeader

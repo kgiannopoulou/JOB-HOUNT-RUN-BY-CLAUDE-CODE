@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import { AppearanceSettings } from "@/components/settings/appearance-settings";
+import { PreferencesForm } from "@/components/settings/preferences-form";
+import { ProfileForm } from "@/components/settings/profile-form";
 import { PageHeader } from "@/components/shared/page-header";
 import { PhaseBadge } from "@/components/shared/phase-badge";
 import { Button } from "@/components/ui/button";
@@ -11,40 +13,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { requireUser } from "@/server/auth/user";
+import { createClient } from "@/server/supabase/server";
 
 export const metadata: Metadata = { title: "Settings" };
 
-const profileFields = [
-  { id: "full-name", label: "Full name" },
-  { id: "headline", label: "Headline" },
-  { id: "profile-location", label: "Location" },
-  { id: "linkedin", label: "LinkedIn URL" },
-];
+export default async function SettingsPage() {
+  const user = await requireUser("/settings");
+  const supabase = await createClient();
 
-const preferenceFields = [
-  { id: "titles", label: "Target job titles" },
-  { id: "pref-locations", label: "Preferred locations" },
-  { id: "remote", label: "Remote policy" },
-  { id: "salary", label: "Minimum salary" },
-];
+  const [profile, preferences] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    supabase.from("user_preferences").select("*").eq("user_id", user.id).single(),
+  ]);
+  if (profile.error) throw new Error(profile.error.message);
+  if (preferences.error) throw new Error(preferences.error.message);
 
-function DisabledFields({ fields }: { fields: typeof profileFields }) {
-  return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {fields.map((field) => (
-        <div key={field.id} className="space-y-2">
-          <Label htmlFor={field.id}>{field.label}</Label>
-          <Input id={field.id} className="h-10" disabled />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export default function SettingsPage() {
   return (
     <>
       <PageHeader
@@ -52,7 +37,7 @@ export default function SettingsPage() {
         description="Manage your profile, job preferences, appearance and data."
       />
 
-      <Tabs defaultValue="appearance" className="gap-4">
+      <Tabs defaultValue="profile" className="gap-4">
         <div className="overflow-x-auto">
           <TabsList>
             <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -67,12 +52,11 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle>Profile</CardTitle>
               <CardDescription>
-                Used on your CV and cover letters.
+                Signed in as {user.email}. Used on your CV and cover letters.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <PhaseBadge phase={3} />
-              <DisabledFields fields={profileFields} />
+            <CardContent>
+              <ProfileForm profile={profile.data} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -85,9 +69,8 @@ export default function SettingsPage() {
                 Used to find roles and judge how well they suit you.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <PhaseBadge phase={3} />
-              <DisabledFields fields={preferenceFields} />
+            <CardContent>
+              <PreferencesForm preferences={preferences.data} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -96,9 +79,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Appearance</CardTitle>
-              <CardDescription>
-                Saved in this browser.
-              </CardDescription>
+              <CardDescription>Saved in this browser.</CardDescription>
             </CardHeader>
             <CardContent>
               <AppearanceSettings />
