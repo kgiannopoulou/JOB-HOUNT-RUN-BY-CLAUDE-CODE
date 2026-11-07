@@ -35,6 +35,13 @@ A CV holds a name, address, phone number, employment history and sometimes more.
 | Sign-up and reset replies do not reveal who has an account | ✅ |
 | Sync endpoint protected by a secret with a constant-time comparison | ✅ |
 | Provider HTML converted to plain text before storage | ✅ |
+| Anthropic key only in server code, and the SDK only in the AI gateway | ✅ Tested in `tests/unit/secrets.test.ts` |
+| CV files private to their owner, originals cannot be overwritten | ✅ `tests/integration/cv.test.ts` |
+| Uploads checked by size, extension and file signature. Macro-enabled, damaged, encrypted and oversized documents rejected | ✅ `tests/unit/cv-upload.test.ts` |
+| Word XML read without an XML parser, so no entity expansion. Unpacked size limited | ✅ |
+| Per-user daily AI limit, enforced atomically | ✅ `tests/integration/cv.test.ts` |
+| Contact details left out of analysis and matching requests | ✅ `tests/e2e/cv.spec.ts` |
+| Logs hold only the feature and error code, never CV or prompt text | ✅ `tests/unit/ai-gateway.test.ts` |
 | Security headers, rate limits of our own, MFA | Planned for Phase 11 |
 
 ## 6.3 AI-specific controls
@@ -44,11 +51,11 @@ Job descriptions come from third parties and can contain text written to manipul
 1. **Separation.** Untrusted text is wrapped in clearly delimited blocks and the system prompt says it is data, never instructions.
 2. **No tools by default.** Scoring, analysis and writing calls have no tools, so injected text has nothing to trigger.
 3. **Constrained output.** Structured outputs restrict responses to the schema, and Zod validates them again.
-4. **Evidence checks.** Quotes offered as evidence must appear in the CV or job text. If they do not, the score is flagged.
-5. **Fabrication checks.** Tailored CV text is compared with the source CV, and new employers, dates, degrees or skills are shown to the user for review.
+4. **Evidence checks.** Quotes offered as evidence must appear in the CV or job text. If they do not, the claim earns no credit, and a requirement the job does not contain is left out. See `src/lib/matching/score.ts`.
+5. **Fabrication checks.** Generated text is compared with the source CV, and new names and numbers are shown to the user for review. Extracted values not found in the uploaded file are flagged on the review screen.
 6. **Human review.** Nothing generated is sent anywhere automatically. The user reads and accepts it.
 7. **Safe rendering.** Output is treated as untrusted when displayed, including any links.
-8. **Regression tests.** An injection test set runs in the AI evaluation suite.
+8. **Regression tests.** Injection cases run in `tests/unit/match-score.test.ts` and, against the real model, in `npm run test:ai`.
 
 ## 6.4 HTTP headers
 

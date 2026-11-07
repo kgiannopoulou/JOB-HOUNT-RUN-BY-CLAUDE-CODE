@@ -100,16 +100,24 @@ Title and company also have trigram indexes for partial matches.
 | `id` | uuid PK | |
 | `user_id` | uuid FK | |
 | `title` | text | |
-| `storage_path` | text | Original upload |
+| `storage_path` | text | Original upload. Users cannot change it |
+| `file_name`, `file_type`, `file_size` | | Details of the original. Users cannot change them |
+| `extracted_text` | text | Text read from the file. Users cannot change it |
 | `parse_status` | enum | `pending`, `parsing`, `needs_review`, `ready`, `failed` |
-| `content` | jsonb | Structured CV |
+| `content` | jsonb | Structured CV, corrected by the user |
+| `verified_at` | timestamptz | When the user confirmed `content`. Analysis and matching require it |
+| `parse_error` | text | A message safe to show the user |
 | `is_primary` | boolean | Partial unique index: one primary per user |
 | `parent_resume_id` | uuid | Same-user composite foreign key |
 | `target_job_id` | uuid FK | |
 
 ### AI results and documents
 
-**`job_matches`**: `user_id`, `job_id`, `resume_id`, `score` (0 to 100), `result` jsonb, `prompt_version`, `model`. Unique on `(job_id, resume_id, prompt_version)`.
+**`job_matches`**: `user_id`, `job_id`, `resume_id`, `score` (0 to 100), `result` jsonb, `prompt_version`, `model`. Unique on `(job_id, resume_id, prompt_version)`. `result` holds every assessed requirement, the calculation, and hashes of the inputs, so an out-of-date result can be recognised.
+
+**`cv_analyses`**: `user_id`, `resume_id`, `profile_hash`, `result` jsonb, `prompt_version`, `model`. Unique on `(resume_id, profile_hash, prompt_version)`, so an unchanged CV is never analysed twice.
+
+**`ai_usage`**: `user_id`, `feature`, `status`, `model`, token counts. One row per AI call. `reserve_ai_call()` checks the daily limit and records the call in one locked step, so parallel requests cannot pass the limit. Only the service role can call it.
 
 **`cover_letters`**: `user_id`, `job_id`, `resume_id`, `tone`, `content`, `is_edited`.
 
@@ -140,7 +148,7 @@ Title and company also have trigram indexes for partial matches.
 
 ### Added in later phases
 
-`application_events` (Phase 8) and `ai_usage` with per-user limits (when the AI gateway is built) are planned and do not exist yet.
+`application_events` (Phase 8) is planned and does not exist yet.
 
 ## 3.3 Keeping each user's data private
 
@@ -160,9 +168,11 @@ Wrapping `auth.uid()` in a `select` lets Postgres evaluate it once per query rat
 | Table | Visitor | Signed-in user | Server |
 | ----- | ------- | -------------- | ------ |
 | `profiles`, `user_preferences` | None | Read and update own | All |
-| `resumes`, `cover_letters`, `applications`, `interview_sessions`, `interview_questions` | None | All on own | All |
+| `cover_letters`, `applications`, `interview_sessions`, `interview_questions` | None | All on own | All |
+| `resumes` | None | All on own, but updates are limited to `title`, `content`, `parse_status`, `parse_error`, `verified_at` and `is_primary` | All |
 | `saved_jobs` | None | Read, add and remove own | All |
-| `job_matches` | None | Read and delete own | All |
+| `job_matches`, `cv_analyses` | None | Read and delete own | All |
+| `ai_usage` | None | Read own | All |
 | `notifications` | None | Read and delete own, update `read_at` only | All |
 | `jobs` | Read public | Read public and own private | All |
 | `job_sync_runs` | None | None | All |
@@ -171,7 +181,7 @@ Wrapping `auth.uid()` in a `select` lets Postgres evaluate it once per query rat
 
 **Composite foreign keys** close a gap RLS leaves open. RLS checks who owns a row, not what it points to, so Bob could otherwise attach Alice's resume ID to his own application. References between private tables use `(resume_id, user_id)` pointing at `resumes (id, user_id)`, so a link across users is rejected by the database.
 
-The server's secret key bypasses RLS. It is used only in the job sync route, which touches no private data.
+The server's secret key bypasses RLS. It is used in the job sync route and to write records users must not forge: AI usage, analyses and match scores. Those writes take the user ID from the verified session, and the composite foreign keys reject a CV that belongs to someone else. `tests/unit/secrets.test.ts` fails if the key is used anywhere else.
 
 ## 3.4 Functions and triggers
 
@@ -184,11 +194,9 @@ The server's secret key bypasses RLS. It is used only in the job sync route, whi
 
 ## 3.5 Storage
 
-Buckets arrive with CV upload in Phase 5.
-
 | Bucket | Path | Access |
 | ------ | ---- | ------ |
-| `cvs` (private) | `{user_id}/{resume_id}/{filename}` | Storage policy requires the first folder to equal `auth.uid()`. Signed URLs valid for 60 seconds |
+| `cvs` (private) | `{user_id}/{resume_id}/{filename}` | Storage policy requires the first folder to equal `auth.uid()`. Signed URLs valid for 60 seconds. There is no update policy, so a stored original cannot be replaced. Limited to 4 MiB, PDF and DOCX |
 
 ## 3.6 Retention
 

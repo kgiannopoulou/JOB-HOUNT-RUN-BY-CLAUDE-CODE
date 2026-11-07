@@ -56,7 +56,7 @@ Priority: **M** must have, **S** should have, **C** could have.
 
 | ID | Requirement | Pri |
 | -- | ----------- | --- |
-| CV-1 | Upload a PDF or DOCX up to 5 MB | M |
+| CV-1 | Upload a PDF or DOCX up to 4 MB, which fits Vercel's request limit | M |
 | CV-2 | Parse the upload into structured sections with AI | M |
 | CV-3 | Review and correct parsed data before it is used | M |
 | CV-4 | Keep a master CV and any number of tailored versions | M |

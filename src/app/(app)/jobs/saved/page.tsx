@@ -8,9 +8,13 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/server/auth/user";
+import { getMatchIdsForJobs } from "@/server/matching/queries";
 import { createClient } from "@/server/supabase/server";
 
 export const metadata: Metadata = { title: "Saved jobs" };
+
+/** The Check match action on this page can wait for a model response. */
+export const maxDuration = 240;
 
 export default async function SavedJobsPage() {
   const user = await requireUser("/jobs/saved");
@@ -23,6 +27,7 @@ export default async function SavedJobsPage() {
   if (error) throw new Error(`Saved jobs failed: ${error.message}`);
 
   const jobs = data.flatMap((row) => (row.jobs ? [row.jobs] : []));
+  const matches = await getMatchIdsForJobs(supabase, jobs.map((job) => job.id));
 
   return (
     <>
@@ -46,7 +51,13 @@ export default async function SavedJobsPage() {
         <ul className="space-y-3">
           {jobs.map((job) => (
             <li key={job.id}>
-              <JobCard job={job} saved returnTo="/jobs/saved" />
+              <JobCard
+                job={job}
+                saved
+                returnTo="/jobs/saved"
+                signedIn
+                match={matches.get(job.id)}
+              />
             </li>
           ))}
         </ul>

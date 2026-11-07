@@ -23,7 +23,21 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "applications": {
+            "ai_usage": {
+                  Row: {
+                    "cache_read_tokens": number,"created_at": string,"feature": string,"id": string,"input_tokens": number,"model": string,"output_tokens": number,"status": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "cache_read_tokens"?: number,"created_at"?: string,"feature": string,"id"?: string,"input_tokens"?: number,"model": string,"output_tokens"?: number,"status"?: string,"user_id": string
+                  }
+                  Update: {
+                    "cache_read_tokens"?: number,"created_at"?: string,"feature"?: string,"id"?: string,"input_tokens"?: number,"model"?: string,"output_tokens"?: number,"status"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"applications": {
                   Row: {
                     "applied_at": string | null,"company": string,"cover_letter_id": string | null,"created_at": string,"id": string,"job_id": string | null,"next_action_at": string | null,"notes": string,"resume_id": string | null,"role_title": string,"status": Database["public"]['Enums']["application_status"],"updated_at": string,"user_id": string
                   }
@@ -75,6 +89,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "cover_letters_resume_id_user_id_fkey"
+      columns: ["resume_id","user_id"]
+isOneToOne: false
+      referencedRelation: "resumes"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"cv_analyses": {
+                  Row: {
+                    "created_at": string,"id": string,"model": string,"profile_hash": string,"prompt_version": string,"result": NonNullable<Json>,"resume_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"model": string,"profile_hash": string,"prompt_version": string,"result": NonNullable<Json>,"resume_id": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"model"?: string,"profile_hash"?: string,"prompt_version"?: string,"result"?: NonNullable<Json>,"resume_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "cv_analyses_resume_id_user_id_fkey"
       columns: ["resume_id","user_id"]
 isOneToOne: false
       referencedRelation: "resumes"
@@ -211,14 +245,14 @@ isOneToOne: false
                   ]
                 },"resumes": {
                   Row: {
-                    "content": Json | null,"created_at": string,"id": string,"is_primary": boolean,"parent_resume_id": string | null,"parse_status": Database["public"]['Enums']["resume_parse_status"],"storage_path": string | null,"target_job_id": string | null,"title": string,"updated_at": string,"user_id": string
+                    "content": Json | null,"created_at": string,"extracted_text": string | null,"file_name": string | null,"file_size": number | null,"file_type": string | null,"id": string,"is_primary": boolean,"parent_resume_id": string | null,"parse_error": string | null,"parse_status": Database["public"]['Enums']["resume_parse_status"],"storage_path": string | null,"target_job_id": string | null,"title": string,"updated_at": string,"user_id": string,"verified_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "content"?: Json | null,"created_at"?: string,"id"?: string,"is_primary"?: boolean,"parent_resume_id"?: string | null,"parse_status"?: Database["public"]['Enums']["resume_parse_status"],"storage_path"?: string | null,"target_job_id"?: string | null,"title": string,"updated_at"?: string,"user_id": string
+                    "content"?: Json | null,"created_at"?: string,"extracted_text"?: string | null,"file_name"?: string | null,"file_size"?: number | null,"file_type"?: string | null,"id"?: string,"is_primary"?: boolean,"parent_resume_id"?: string | null,"parse_error"?: string | null,"parse_status"?: Database["public"]['Enums']["resume_parse_status"],"storage_path"?: string | null,"target_job_id"?: string | null,"title": string,"updated_at"?: string,"user_id": string,"verified_at"?: string | null
                   }
                   Update: {
-                    "content"?: Json | null,"created_at"?: string,"id"?: string,"is_primary"?: boolean,"parent_resume_id"?: string | null,"parse_status"?: Database["public"]['Enums']["resume_parse_status"],"storage_path"?: string | null,"target_job_id"?: string | null,"title"?: string,"updated_at"?: string,"user_id"?: string
+                    "content"?: Json | null,"created_at"?: string,"extracted_text"?: string | null,"file_name"?: string | null,"file_size"?: number | null,"file_type"?: string | null,"id"?: string,"is_primary"?: boolean,"parent_resume_id"?: string | null,"parse_error"?: string | null,"parse_status"?: Database["public"]['Enums']["resume_parse_status"],"storage_path"?: string | null,"target_job_id"?: string | null,"title"?: string,"updated_at"?: string,"user_id"?: string,"verified_at"?: string | null
                   }
                   Relationships: [
                     {
@@ -279,6 +313,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "job_count": number,"location": string
             }[]
+                           },
+"reserve_ai_call":
+{ Args: { "p_daily_limit": number,"p_feature": string,"p_model": string,"p_user_id": string }; Returns: string
                            },
 "search_jobs":
 { Args: { "p_city"?: string,"p_company"?: string,"p_employment_types"?: (Database["public"]['Enums']["employment_type"])[],"p_experience_levels"?: (Database["public"]['Enums']["experience_level"])[],"p_keywords"?: string,"p_limit"?: number,"p_locations"?: (string)[],"p_min_salary"?: number,"p_offset"?: number,"p_remote_policies"?: (Database["public"]['Enums']["remote_policy"])[],"p_sort"?: string,"p_title"?: string }; Returns: {

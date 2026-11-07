@@ -12,6 +12,9 @@ import { createClient } from "@/server/supabase/server";
 
 export const metadata: Metadata = { title: "Jobs" };
 
+/** The Check match action on this page can wait for a model response. */
+export const maxDuration = 240;
+
 export default async function JobsPage({ searchParams }: PageProps<"/jobs">) {
   const filters = parseJobFilters(await searchParams);
   const supabase = await createClient();

@@ -9,7 +9,9 @@ Limits for third-party services change often. Figures marked *verify* come from 
 | Job data coverage is weak, especially in Greece | High | High | Several sources behind one adapter interface, and manual add is a first-class feature from day one |
 | AI invents or exaggerates CV content | Medium | High | Rule AI-7, evidence and fabrication checks, user review |
 | Prompt injection through job text | Medium | Medium | See [security plan](06-security-plan.md#63-ai-specific-controls) |
-| AI costs exceed the budget | Medium | High | Result cache, prompt caching, batches, daily limits, effort set per feature |
+| AI costs exceed the budget | Medium | High | Result cache, prompt caching, daily limits, effort set per feature |
+| Real API rejects something the local stand-in accepts | Medium | Medium | The stand-in cannot prove schema or beta options are accepted, so run `npm run test:ai` once a key exists |
+| Scanned PDFs have no text to read | Medium | Low | A clear message asks for a text PDF or DOCX. OCR is not built |
 | Function timeouts on long AI calls | Medium | Medium | Streaming, background status pattern, batches for bulk work |
 | Match scores vary between runs | Medium | Medium | Scoring rubric in the prompt, results stored per input hash, consistency evaluation |
 | CV parsing fails on unusual layouts | High | Medium | Review screen before use, manual editing, DOCX text extraction as fallback |
@@ -85,7 +87,7 @@ Haiku prices apply up to 100K tokens per prompt.
 
 | Service | Limit | Effect |
 | ------- | ----- | ------ |
-| Vercel | Function duration, request body size (about 4.5 MB) and cron frequency vary by plan, *verify* | Uploads may need to go straight to Supabase Storage with a signed upload URL. Plan affects the background design |
+| Vercel | Function duration, request body size (about 4.5 MB) and cron frequency vary by plan, *verify* | CV uploads are limited to 4 MB to fit, because they pass through a server action. Plan affects the background design |
 | Vercel Hobby | Non-commercial use only, *verify* | A paid plan is needed if the product charges users |
 | Supabase Free | About 500 MB database, 1 GB storage, projects pause after a week of inactivity, *verify* | Fine for development, not for production |
 | Supabase Auth email | Very low hourly limit on the built-in sender, *verify* | Custom SMTP before launch |

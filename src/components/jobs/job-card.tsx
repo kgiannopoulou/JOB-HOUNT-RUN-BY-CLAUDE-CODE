@@ -1,5 +1,8 @@
 import { Building2, CalendarDays, ExternalLink, MapPin } from "lucide-react";
 
+import Link from "next/link";
+
+import { CheckMatchButton } from "@/components/jobs/check-match-button";
 import { SaveJobButton } from "@/components/jobs/save-job-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,9 +44,11 @@ type JobCardProps = {
   job: JobCardData;
   saved: boolean;
   returnTo: string;
+  signedIn?: boolean;
+  match?: { id: string; score: number | null };
 };
 
-export function JobCard({ job, saved, returnTo }: JobCardProps) {
+export function JobCard({ job, saved, returnTo, signedIn, match }: JobCardProps) {
   const badges = [
     label(remoteOptions, job.remote_policy),
     label(employmentOptions, job.employment_type),
@@ -110,6 +115,15 @@ export function JobCard({ job, saved, returnTo }: JobCardProps) {
             saved={saved}
             returnTo={returnTo}
           />
+          {match ? (
+            <Button asChild variant="outline" size="lg">
+              <Link href={`/matches/${match.id}`}>
+                {match.score === null ? "View match" : `View match: ${match.score}%`}
+              </Link>
+            </Button>
+          ) : (
+            signedIn && <CheckMatchButton jobId={job.id} title={job.title} />
+          )}
         </div>
       </CardContent>
     </Card>

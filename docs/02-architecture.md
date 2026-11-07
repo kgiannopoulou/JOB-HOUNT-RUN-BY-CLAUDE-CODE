@@ -115,9 +115,9 @@ The default for every feature is **Claude Opus 5.5** (`claude-opus-5-5`), read f
 
 | Feature | Output | Effort | Delivery |
 | ------- | ------ | ------ | -------- |
-| CV parsing (PDF sent directly as a document block) | Structured | low | Background |
-| Job analysis | Structured | low | Request, cached per job |
-| Match scoring | Structured | medium | Request, cached per job and CV version |
+| CV parsing (text read from the file on the server) | Structured | low | Request, started by the user |
+| CV analysis | Structured | medium | Request, cached per verified profile |
+| Job matching (requirements and evidence, no score) | Structured | medium | Request, cached per job and CV content |
 | CV tailoring suggestions | Structured | high | Request |
 | Cover letter | Text | high | Streamed |
 | Interview questions | Structured | medium | Request |
@@ -127,19 +127,35 @@ The default for every feature is **Claude Opus 5.5** (`claude-opus-5-5`), read f
 
 Checked against the current Anthropic documentation for `claude-opus-5-5`:
 
-- Structured results use `client.messages.parse()` with `output_config.format`. Assistant prefill and forced `tool_choice` both return a 400.
+- Structured results use `output_config.format`, with the response validated by the same Zod schema. The gateway calls `create` rather than `parse`, because `parse` throws on cut-off text before `stop_reason` can be read. Assistant prefill and forced `tool_choice` both return a 400.
 - Thinking cannot be disabled and `budget_tokens` is rejected. Effort is the only control, and its default is `medium`, so it is always set explicitly.
 - `temperature`, `top_p` and `top_k` are rejected.
 - Always check `stop_reason` before reading content. `refusal` and `max_tokens` are normal outcomes that the UI must handle. Server-side `fallbacks` are enabled for refusals.
-- Long generations stream, using `.stream()` and `.finalMessage()`.
+- Long generations stream, using `.stream()` and `.finalMessage()`. Structured calls in Phases 5 and 6 stay within 16,000 output tokens and do not need it.
 - Citations cannot be combined with structured output, so evidence for match scores is returned as quoted fields in the schema and verified in code.
+
+### Matching and scoring
+
+The model never produces a number. It lists each requirement with a quote from the job, and pairs it with a quote from the verified profile. `scoreMatch` in `src/lib/matching/score.ts` then applies fixed rules:
+
+| Rule | Value |
+| ---- | ----- |
+| Credit | Met 100%, partly met 50%, not met 0% |
+| Importance | Mandatory counts 3, preferred counts 1. Words in the job's own quote override the model's choice |
+| Category weights | Skills 35, experience 20, responsibilities 15, education 10, certifications 10, seniority 5, languages 5. Categories the job does not mention are left out |
+| Evidence | Credit needs a quote found in the verified profile. A requirement needs a quote found in the job |
+| Calculated facts | Total years come from role dates, with overlaps counted once. A skill or certification listed in the profile is met |
+| Caps | Any mandatory requirement missing: at most 74. Half or more missing: at most 49 |
+| Bands | Strong from 75, moderate from 50, otherwise limited. No checkable requirements: no score |
+
+These are product choices, not validated predictions. The score is never described as a chance of being hired.
 
 ### Cost control
 
 - **Result cache.** Results are stored by a hash of the prompt version and input. The same job and CV are never scored twice.
 - **Prompt caching.** The stable system prompt and CV come first in the request, marked with `cache_control`, so scoring several jobs against one CV reuses the prefix. Verified with `usage.cache_read_input_tokens`.
-- **Batches.** Saved-search scoring runs overnight through the Message Batches API at half price.
-- **Budgets.** Each user has a daily limit, checked before every call and recorded in `ai_usage`.
+- **Batches.** Planned: saved-search scoring overnight through the Message Batches API at half price.
+- **Budgets.** Each user has a daily limit, 30 calls in 24 hours by default (`AI_DAILY_LIMIT`), checked before every call and recorded in `ai_usage`.
 
 ## 2.5 Job ingestion
 
@@ -174,7 +190,7 @@ Vercel functions have time limits, so anything long is split up:
 
 | Work | Approach |
 | ---- | -------- |
-| CV parsing | Runs after the upload response returns, with a `status` column the UI polls |
+| CV parsing | Runs when the user chooses to, inside a server action. Pages with AI actions set `maxDuration` to 240 seconds, which must be confirmed against the Vercel plan. A `parse_status` claim stops double runs |
 | Job sync | Vercel Cron calling a secret-protected route, once a day |
 | Bulk scoring | Message Batches, submitted by cron and collected by a later cron run |
 | Data export | Generated into private storage, with a signed link |
@@ -187,7 +203,7 @@ Vercel functions have time limits, so anything long is split up:
 | Preview | Vercel preview per pull request | Shared staging project |
 | Production | Vercel | Production project, EU region |
 
-Secrets live in Vercel environment variables and in an uncommitted `.env.local`. Only values prefixed `NEXT_PUBLIC_` can reach the browser, and those are limited to the Supabase URL and publishable key. Authentication runs in server actions, so no Supabase client is shipped to the browser yet.
+Secrets live in Vercel environment variables and in an uncommitted `.env.local`. Only values prefixed `NEXT_PUBLIC_` can reach the browser, and those are limited to the Supabase URL and publishable key. Authentication and CV uploads run in server actions, so no Supabase client is shipped to the browser yet.
 
 ## 2.8 Key decisions
 

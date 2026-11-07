@@ -1,6 +1,7 @@
 import {
   BriefcaseBusiness,
   FileText,
+  Gauge,
   KanbanSquare,
   LayoutDashboard,
   MessagesSquare,
@@ -18,6 +19,7 @@ export const primaryNav: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Jobs", href: "/jobs", icon: BriefcaseBusiness },
   { title: "CV", href: "/cv", icon: FileText },
+  { title: "Matches", href: "/matches", icon: Gauge },
   { title: "Applications", href: "/applications", icon: KanbanSquare },
   { title: "Interview prep", href: "/interview", icon: MessagesSquare },
 ];

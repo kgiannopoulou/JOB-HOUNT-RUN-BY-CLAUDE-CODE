@@ -14,6 +14,7 @@ import {
 } from "@/lib/job-filters";
 import { getCurrentUser } from "@/server/auth/user";
 import { getSavedJobIds, searchJobs } from "@/server/jobs/search";
+import { getMatchIdsForJobs } from "@/server/matching/queries";
 import { createClient } from "@/server/supabase/server";
 
 const pageHref = (filters: JobFilters, page: number) => {
@@ -70,9 +71,13 @@ export async function JobResults({ filters }: { filters: JobFilters }) {
     );
   }
 
-  const savedIds = user
-    ? await getSavedJobIds(supabase, user.id, jobs.map((job) => job.id))
-    : new Set<string>();
+  const jobIds = jobs.map((job) => job.id);
+  const [savedIds, matches] = user
+    ? await Promise.all([
+        getSavedJobIds(supabase, user.id, jobIds),
+        getMatchIdsForJobs(supabase, jobIds),
+      ])
+    : [new Set<string>(), new Map()];
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const returnTo = pageHref(filters, filters.page);
 
@@ -92,6 +97,8 @@ export async function JobResults({ filters }: { filters: JobFilters }) {
               job={job}
               saved={savedIds.has(job.id)}
               returnTo={returnTo}
+              signedIn={Boolean(user)}
+              match={matches.get(job.id)}
             />
           </li>
         ))}

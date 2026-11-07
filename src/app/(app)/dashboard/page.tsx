@@ -40,7 +40,11 @@ const setupSteps = [
     title: "Add your CV",
     text: "Upload the CV that everything else builds on.",
     href: "/cv",
-    phase: 5,
+  },
+  {
+    title: "Check a job match",
+    text: "Compare your confirmed CV with a job you like.",
+    href: "/matches",
   },
   {
     title: "Track an application",
@@ -105,7 +109,7 @@ export default async function DashboardPage() {
           <CardHeader>
             <CardTitle>Get started</CardTitle>
             <CardDescription>
-              Four steps to a working job search.
+              Five steps to a working job search.
             </CardDescription>
           </CardHeader>
           <CardContent>

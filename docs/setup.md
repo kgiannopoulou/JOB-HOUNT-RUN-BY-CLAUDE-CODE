@@ -30,6 +30,22 @@ npm run jobs:sync
 
 Remotive allows only a few requests a day, so the app makes one at most every 6 hours and skips the rest. `npm run db:reset` clears that history, so avoid repeating it just to sync again.
 
+### Turn on AI features
+
+Create a key at <https://platform.claude.com> and add it to `.env.local`:
+
+```bash
+ANTHROPIC_API_KEY=your-key
+```
+
+Restart the app, then confirm the key works against the real API. This costs a few cents:
+
+```bash
+npm run test:ai
+```
+
+Without a key the app still runs, and you can enter CV details by hand. `ANTHROPIC_MODEL` and `AI_DAILY_LIMIT` are optional, see `.env.example`. Add the same values to Vercel when you deploy. Never prefix them with `NEXT_PUBLIC_`.
+
 ## Connect a hosted Supabase project
 
 1. Create a project at [supabase.com](https://supabase.com), in an EU region.

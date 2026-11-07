@@ -18,7 +18,7 @@ Unit, integration and end-to-end tests run today, locally and in CI. See [setup]
 
 ## 8.2 External services in tests
 
-- **Anthropic:** never called in normal CI. A fake client returns recorded responses, so tests are fast, free and repeatable.
+- **Anthropic:** never called in normal CI. Unit tests stub `fetch` under the real SDK. End-to-end tests point the SDK at `tests/e2e/fake-anthropic.mjs`, a local server with fixed answers in the real wire format, so tests are fast, free and repeatable. `npm run test:ai` is the only suite that calls the real API. It is run by hand, and it proves what the stand-in cannot: that the API accepts the schemas and request options.
 - **Job sources:** adapters run against saved fixture responses. A scheduled weekly job checks that real responses still match.
 - **Supabase:** real local instance through the Supabase CLI, because RLS cannot be tested with mocks.
 

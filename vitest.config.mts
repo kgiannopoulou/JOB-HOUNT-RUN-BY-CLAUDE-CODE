@@ -33,6 +33,18 @@ export default defineConfig({
           hookTimeout: 60_000,
         },
       },
+      {
+        resolve,
+        test: {
+          name: "live",
+          environment: "node",
+          include: ["tests/live/**/*.test.ts"],
+          setupFiles: ["tests/setup-integration.ts"],
+          fileParallelism: false,
+          testTimeout: 180_000,
+          hookTimeout: 60_000,
+        },
+      },
     ],
   },
 });

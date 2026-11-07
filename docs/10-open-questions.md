@@ -1,6 +1,6 @@
 # 10. Open questions
 
-Nothing here blocked Phases 1 to 4. Each question has a default, and work continues on that default unless the project owner says otherwise. The "needed by" column shows when the answer starts to matter.
+Nothing here blocked Phases 1 to 6. Each question has a default, and work continues on that default unless the project owner says otherwise. The "needed by" column shows when the answer starts to matter.
 
 | # | Question | Default assumed | Needed by |
 | - | -------- | --------------- | --------- |

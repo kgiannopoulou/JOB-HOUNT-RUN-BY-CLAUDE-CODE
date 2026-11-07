@@ -38,3 +38,17 @@ export function cronSecret(): string {
   if (!secret) throw missing("CRON_SECRET");
   return secret;
 }
+
+/** Empty when AI features are not set up. The app then runs without them. */
+export function anthropicApiKey(): string | undefined {
+  return process.env.ANTHROPIC_API_KEY || undefined;
+}
+
+export function aiModel(): string {
+  return process.env.ANTHROPIC_MODEL || "claude-opus-5-5";
+}
+
+export function aiDailyLimit(): number {
+  const limit = Number(process.env.AI_DAILY_LIMIT);
+  return Number.isInteger(limit) && limit > 0 ? limit : 30;
+}

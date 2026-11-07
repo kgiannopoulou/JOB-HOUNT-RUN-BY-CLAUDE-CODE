@@ -48,6 +48,8 @@ Registration, sign-in and password reset use Supabase Auth directly, so they are
 
 ## CVs
 
+The web app uses server actions for these operations (`src/server/cv/actions.ts` and `src/server/matching/actions.ts`). The endpoints below remain the plan for a public API.
+
 | Method | Path | Purpose |
 | ------ | ---- | ------- |
 | GET | `/cvs` | List CVs |

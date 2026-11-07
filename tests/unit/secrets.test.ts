@@ -23,14 +23,27 @@ describe("secret handling", () => {
     expect(users.map((f) => f.file)).toEqual(["src/server/env.ts"]);
   });
 
-  it("uses the admin client only in the sync route", () => {
+  it("reads the Anthropic key only in the server env module", () => {
+    const users = files.filter((f) => f.text.includes("ANTHROPIC_API_KEY"));
+    expect(users.map((f) => f.file)).toEqual(["src/server/env.ts"]);
+  });
+
+  it("calls Anthropic only through the AI gateway", () => {
+    const users = files.filter((f) => f.text.includes("@anthropic-ai/sdk"));
+    expect(users.map((f) => f.file)).toEqual(["src/server/ai/gateway.ts"]);
+  });
+
+  it("uses the admin client only for sync and server-produced records", () => {
     const users = files.filter(
       (f) =>
         f.text.includes("createAdminClient") &&
         f.file !== "src/server/supabase/admin.ts",
     );
-    expect(users.map((f) => f.file)).toEqual([
+    expect(users.map((f) => f.file).sort()).toEqual([
       "src/app/api/internal/cron/sync-jobs/route.ts",
+      "src/server/ai/usage.ts",
+      "src/server/cv/store.ts",
+      "src/server/matching/store.ts",
     ]);
   });
 
@@ -41,7 +54,15 @@ describe("secret handling", () => {
   });
 
   it("marks modules holding credentials as server only", () => {
-    for (const name of ["env.ts", "supabase/admin.ts", "supabase/server.ts"]) {
+    for (const name of [
+      "env.ts",
+      "supabase/admin.ts",
+      "supabase/server.ts",
+      "ai/gateway.ts",
+      "ai/usage.ts",
+      "cv/store.ts",
+      "matching/store.ts",
+    ]) {
       const file = files.find((f) => f.file === `src/server/${name}`);
       expect(file?.text).toContain('import "server-only"');
     }
@@ -52,6 +73,7 @@ describe("secret handling", () => {
     expect(clientFiles.length).toBeGreaterThan(0);
     for (const { text } of clientFiles) {
       expect(text).not.toContain("supabase/admin");
+      expect(text).not.toContain("server/ai/");
     }
   });
 });
