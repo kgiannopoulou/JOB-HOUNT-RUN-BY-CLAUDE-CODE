@@ -29,6 +29,7 @@ import {
 } from "@/server/applications/queries";
 import { requireUser } from "@/server/auth/user";
 import { createClient } from "@/server/supabase/server";
+import { getUserClock } from "@/server/time";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -64,7 +65,7 @@ export default async function DashboardPage() {
   const user = await requireUser("/dashboard");
   const supabase = await createClient();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const { today } = await getUserClock();
   const count = { count: "exact", head: true } as const;
   const [profile, saved, applications, events, reminders, interviews] = await Promise.all([
     supabase.from("profiles").select("full_name").eq("id", user.id).single(),

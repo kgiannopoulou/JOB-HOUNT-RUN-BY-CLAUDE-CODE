@@ -75,7 +75,7 @@ test("saving a job puts it on the board, and unsaving an untouched one removes i
 });
 
 test("unsaving a job keeps a card with progress on it", async ({ page }) => {
-  await newUser(page);
+  const user = await newUser(page);
   await page.goto(`/jobs?title=${encodeURIComponent(jobTitle)}`);
   await page.getByRole("button", { name: `Save ${jobTitle}` }).click();
   await expect(page.getByRole("button", { name: `Remove ${jobTitle}` })).toBeVisible();
@@ -85,6 +85,13 @@ test("unsaving a job keeps a card with progress on it", async ({ page }) => {
     .getByRole("combobox", { name: `Move ${jobTitle} at Saved Company` })
     .selectOption("applied");
   await expect(column(page, "applied")).toContainText(jobTitle);
+  // The card moves on screen before the save finishes, so wait for the record itself.
+  await expect
+    .poll(async () => {
+      const { data } = await admin.from("applications").select("status").eq("user_id", user.id).single();
+      return data?.status;
+    })
+    .toBe("applied");
 
   await page.goto(`/jobs?title=${encodeURIComponent(jobTitle)}`);
   await page.getByRole("button", { name: `Remove ${jobTitle}` }).click();

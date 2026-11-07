@@ -18,6 +18,8 @@ Unit, integration and end-to-end tests run today, locally and in CI. See [setup]
 
 Phases 7 and 8 add checks worth knowing about. `tests/unit/pdf-export.test.ts` renders real PDFs and reads the text back, including Greek. `tests/e2e/fake-anthropic.mjs` answers tailoring and letter requests with invented employers, numbers and skills, and `tests/e2e/builder.spec.ts` proves none reach the page or the PDF. `tests/integration/applications.test.ts` compares every status pair between the app and the database. Phone-width checks wait for real content, because the loading skeleton always fits.
 
+Phases 9 and 10 follow the same approach. The test double offers invented employers, a false merger, a promise that a question will be asked, unsupported praise and made-up figures, and `tests/e2e/interview.spec.ts` proves none reach the page. `tests/unit/notifications.test.ts` covers every delivery rule, including time zones, and `tests/integration/interview-notifications.test.ts` runs delivery against the real database, including overlapping runs. `tests/e2e/analytics.spec.ts` compares the dashboard with records it creates itself.
+
 ## 8.2 External services in tests
 
 - **Anthropic:** never called in normal CI. Unit tests stub `fetch` under the real SDK. End-to-end tests point the SDK at `tests/e2e/fake-anthropic.mjs`, a local server with fixed answers in the real wire format, so tests are fast, free and repeatable. `npm run test:ai` is the only suite that calls the real API. It is run by hand, and it proves what the stand-in cannot: that the API accepts the schemas and request options.

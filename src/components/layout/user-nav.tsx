@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { UserMenu } from "@/components/layout/user-menu";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/server/auth/user";
 
@@ -16,5 +17,10 @@ export async function UserNav() {
   }
 
   const name = String(user.user_metadata.full_name ?? "");
-  return <UserMenu name={name} email={user.email ?? ""} />;
+  return (
+    <>
+      <NotificationBell />
+      <UserMenu name={name} email={user.email ?? ""} />
+    </>
+  );
 }

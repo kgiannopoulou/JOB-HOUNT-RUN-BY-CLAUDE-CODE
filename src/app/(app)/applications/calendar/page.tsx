@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { listCalendarItems } from "@/server/applications/queries";
 import { requireUser } from "@/server/auth/user";
 import { createClient } from "@/server/supabase/server";
+import { getUserClock } from "@/server/time";
 
 export const metadata: Metadata = { title: "Application calendar" };
 
@@ -55,7 +56,7 @@ export default async function ApplicationCalendarPage({
   const { month: requested } = await searchParams;
 
   const supabase = await createClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const { today } = await getUserClock();
   const month = parseMonth(requested, today);
   const { start, end } = monthRange(month);
   const items = await listCalendarItems(supabase, start, end);

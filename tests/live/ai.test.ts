@@ -1,10 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { profileIssues } from "@/lib/cv/profile";
+import { buildFeedback } from "@/lib/interview/feedback";
 import { containsPhrase, normalizeForMatch } from "@/lib/cv/grounding";
 import { scoreMatch } from "@/lib/matching/score";
 import { tailorProfile } from "@/server/builder/ai";
 import { analyseProfile, extractProfile } from "@/server/cv/ai";
+import { generateQuestions, reviewAnswers } from "@/server/interview/ai";
 import { generateLetter } from "@/server/letters/ai";
 import { compareProfileToJob, jobSourceText } from "@/server/matching/ai";
 
@@ -73,6 +75,34 @@ describe.skipIf(!process.env.ANTHROPIC_API_KEY)("live Anthropic API", () => {
     const text = normalizeForMatch(JSON.stringify(result.profile));
     expect(containsPhrase(text, "dbt")).toBe(false);
     expect(result.keywords.some((keyword) => keyword.term === "SQL" && keyword.found)).toBe(true);
+  });
+
+  it("writes interview questions and invents nothing about the employer", async () => {
+    const { questions } = await generateQuestions({
+      userId: user.id,
+      profile: sampleProfile,
+      company: job.company,
+      roleTitle: job.title,
+      jobText: jobSourceText(job),
+      focus: "mixed",
+      mode: "practice",
+    });
+    expect(questions.some((question) => question.category === "technical")).toBe(true);
+    expect(questions.some((question) => question.category === "behavioural")).toBe(true);
+    for (const question of questions.filter((item) => item.category === "company")) {
+      expect(question.job_quote).not.toBe("");
+    }
+  });
+
+  it("reviews a written answer without writing one for the candidate", async () => {
+    const question = "How would you speed up a slow SQL report?";
+    const answer =
+      "I would read the query plan, add indexes to the slowest tables and rewrite the joins.";
+    const { items } = await reviewAnswers(user.id, job.title, [{ index: 0, question, answer }]);
+    expect(items).toHaveLength(1);
+    const feedback = buildFeedback(items[0], answer, question);
+    expect(feedback.criteria.length).toBeGreaterThan(0);
+    expect(feedback.improvements.join(" ")).not.toMatch(/\d+%/);
   });
 
   it("writes a cover letter that names the job and claims nothing new", async () => {

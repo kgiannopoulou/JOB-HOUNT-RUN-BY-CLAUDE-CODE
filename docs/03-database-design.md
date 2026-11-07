@@ -10,6 +10,8 @@ PostgreSQL on Supabase. This document describes the schema as built. The source 
 | `20261107100000_cv_analyzer.sql` | CV storage, analyses, AI budget |
 | `20261107110000_cv_builder.sql` | CV versions, layouts, cover letter columns |
 | `20261107120000_application_tracker.sql` | Board stages, interviews, reminders, history, status rules |
+| `20261107130000_interview_prep.sql` | Practice sessions, questions with evidence, answers and feedback |
+| `20261107140000_notifications.sql` | Duplicate protection, dismissal, notification preferences, time zone |
 
 ## 3.1 Entity relationships
 
@@ -35,6 +37,7 @@ erDiagram
     applications ||--o{ application_reminders : "reminds about"
     applications ||--o{ application_events : records
     interview_sessions ||--o{ interview_questions : contains
+    interview_questions ||--o{ interview_answers : "answered in"
 ```
 
 ## 3.2 Tables
@@ -62,7 +65,10 @@ All primary keys are UUIDs unless noted, and all timestamps are `timestamptz`.
 | `experience_level` | experience_level | |
 | `min_salary` | numeric | Must not be negative |
 | `salary_currency` | text | Three letters, default `EUR` |
-| `email_notifications` | boolean | Default false |
+| `email_notifications` | boolean | Default false. Not used yet: nothing sends email |
+| `timezone` | text | IANA name. Null until the browser reports it or the user chooses one, and UTC is used meanwhile |
+| `notify_follow_ups`, `notify_interviews`, `notify_saved_jobs`, `notify_job_matches` | boolean | Default true |
+| `notifications_checked_at` | timestamptz | Limits checks to one every 15 minutes |
 
 ### Jobs
 
@@ -157,13 +163,15 @@ Title and company also have trigram indexes for partial matches.
 
 ### Interview preparation
 
-**`interview_sessions`**: `user_id`, `application_id`, `job_id`, `kind` (`behavioural`, `technical`, `mixed`).
+**`interview_sessions`**: `user_id`, `application_id`, `job_id`, `company`, `role_title`, `kind` (`behavioural`, `technical`, `mixed`), `mode` (`practice`, `mock`), `status`, `completed_at`, `had_job_text`, `prompt_version`, `model`. The company and position are copied, so history survives if the application is deleted.
 
-**`interview_questions`**: `session_id`, `user_id`, `position` (unique per session), `question`, `category`, `answer`, `feedback` jsonb.
+**`interview_questions`**: `session_id`, `user_id`, `position` (unique per session), `question`, `category` (`technical`, `behavioural`, `company`), `why_it_may_come_up`, `job_quote`, `structure_name`, `structure_steps`.
+
+**`interview_answers`**: `session_id`, `question_id`, `user_id`, `answer`, `answer_hash`, `rating`, `feedback` jsonb, `prompt_version`, `model`. One row per attempt, so earlier attempts are kept.
 
 ### Notifications
 
-**`notifications`**: `user_id`, `type`, `title`, `body`, `link`, `read_at`. Partial index on unread rows.
+**`notifications`**: `user_id`, `type`, `dedupe_key`, `title`, `body`, `link`, `read_at`, `dismissed_at`. Unique on `(user_id, dedupe_key)`, which is what prevents duplicates. Links must stay inside the site.
 
 ## 3.3 Keeping each user's data private
 
@@ -183,14 +191,16 @@ Wrapping `auth.uid()` in a `select` lets Postgres evaluate it once per query rat
 | Table | Visitor | Signed-in user | Server |
 | ----- | ------- | -------------- | ------ |
 | `profiles`, `user_preferences` | None | Read and update own | All |
-| `applications`, `application_interviews`, `application_reminders`, `interview_sessions`, `interview_questions` | None | All on own | All |
+| `applications`, `application_interviews`, `application_reminders` | None | All on own | All |
+| `interview_sessions` | None | Read and delete own | All |
+| `interview_questions`, `interview_answers` | None | Read own | All |
 | `cover_letters` | None | All on own, but updates are limited to `content`, `is_edited` and `reviewed_at` | All |
 | `application_events` | None | Read own | All |
 | `resumes` | None | All on own, but updates are limited to `title`, `content`, `parse_status`, `parse_error`, `verified_at`, `is_primary`, `template` and `layout` | All |
 | `saved_jobs` | None | Read, add and remove own | All |
 | `job_matches`, `cv_analyses` | None | Read and delete own | All |
 | `ai_usage` | None | Read own | All |
-| `notifications` | None | Read and delete own, update `read_at` only | All |
+| `notifications` | None | Read own, update `read_at` and `dismissed_at` only. No delete, so a dismissed event cannot notify again | All |
 | `jobs` | Read public | Read public and own private | All |
 | `job_sync_runs` | None | None | All |
 
@@ -198,7 +208,7 @@ Wrapping `auth.uid()` in a `select` lets Postgres evaluate it once per query rat
 
 **Composite foreign keys** close a gap RLS leaves open. RLS checks who owns a row, not what it points to, so Bob could otherwise attach Alice's resume ID to his own application. References between private tables use `(resume_id, user_id)` pointing at `resumes (id, user_id)`, so a link across users is rejected by the database.
 
-The server's secret key bypasses RLS. It is used in the job sync route and to write records users must not forge: AI usage, analyses and match scores. Those writes take the user ID from the verified session, and the composite foreign keys reject a CV that belongs to someone else. `tests/unit/secrets.test.ts` fails if the key is used anywhere else.
+The server's secret key bypasses RLS. It is used in the job sync route and to write records users must not forge: AI usage, analyses, match scores, interview ratings and notifications. Those writes take the user ID from the verified session, and the composite foreign keys reject a CV that belongs to someone else. `tests/unit/secrets.test.ts` fails if the key is used anywhere else.
 
 ## 3.4 Functions and triggers
 

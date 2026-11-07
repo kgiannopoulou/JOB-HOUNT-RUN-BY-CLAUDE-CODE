@@ -9,6 +9,7 @@ import {
   type ActionState,
 } from "@/lib/action-state";
 import { remoteOptions } from "@/lib/job-filters";
+import { isValidTimeZone } from "@/lib/time";
 import { requireUser } from "@/server/auth/user";
 import { createClient } from "@/server/supabase/server";
 
@@ -51,6 +52,35 @@ const preferencesSchema = z.object({
     ),
   salary_currency: z.enum(["EUR", "USD", "GBP"]),
 });
+
+const notificationSchema = z.object({
+  timezone: z.string().refine(isValidTimeZone, "Choose a valid time zone."),
+});
+
+export async function updateNotificationPreferences(
+  _previous: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireUser("/settings");
+  const parsed = notificationSchema.safeParse({ timezone: formData.get("timezone") });
+  if (!parsed.success) return errorState(parsed.error.issues[0].message);
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("user_preferences")
+    .update({
+      timezone: parsed.data.timezone,
+      notify_follow_ups: formData.get("notify_follow_ups") === "on",
+      notify_interviews: formData.get("notify_interviews") === "on",
+      notify_saved_jobs: formData.get("notify_saved_jobs") === "on",
+      notify_job_matches: formData.get("notify_job_matches") === "on",
+    })
+    .eq("user_id", user.id);
+  if (error) return errorState("Your settings could not be saved.");
+
+  revalidatePath("/", "layout");
+  return successState("Notification settings saved.");
+}
 
 export async function updateProfile(
   _previous: ActionState,

@@ -40,10 +40,11 @@
 | `/applications/stats` | Statistics | Rates, stages reached, weekly activity | ✅ |
 | `/applications/new` | Add application | For a job found elsewhere, with a duplicate warning | ✅ |
 | `/applications/[id]` | Application detail | Details, recruiter, outcome, documents sent, interviews, reminders, history | ✅ |
-| `/interview` | Interview preparation | Sessions and question sets | 🟡 |
-| `/interview/[id]` | Practice session | Answer and get feedback | 🔜 Phase 9 |
-| `/analytics` | Analytics | Funnel, trends, skill gaps | 🔜 Phase 10 |
-| `/settings` | Settings | Profile, preferences and appearance work. Data export and deletion arrive in Phase 11 | ✅ |
+| `/interview` | Interview preparation | Start a session for an application, and see past sessions | ✅ |
+| `/interview/[id]` | Practice session | Practice or mock interview, with feedback and earlier attempts | ✅ |
+| `/analytics` | Analytics | Key figures, weekly activity, status distribution | ✅ |
+| `/notifications` | Notifications | Read, dismiss and check for new ones | ✅ |
+| `/settings` | Settings | Profile, preferences, notifications, time zone and appearance work. Data export and deletion arrive in Phase 11 | ✅ |
 
 ## Navigation
 

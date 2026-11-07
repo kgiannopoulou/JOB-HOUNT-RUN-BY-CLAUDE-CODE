@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CalendarClock, Clock, MessagesSquare, Reply, Trophy } from "lucide-react";
 
 import { ApplicationsTabs } from "@/components/applications/applications-tabs";
+import { Bar } from "@/components/shared/bar-list";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatCard } from "@/components/shared/stat-card";
@@ -18,26 +19,9 @@ import { applicationStatuses, statusLabels } from "@/lib/applications/status";
 import { listApplicationEvents, listApplications } from "@/server/applications/queries";
 import { requireUser } from "@/server/auth/user";
 import { createClient } from "@/server/supabase/server";
+import { getUserClock } from "@/server/time";
 
 export const metadata: Metadata = { title: "Application statistics" };
-
-type BarProps = { label: string; value: number; max: number };
-
-/** Every value is printed beside its bar, so the numbers do not depend on reading the bar. */
-function Bar({ label, value, max }: BarProps) {
-  return (
-    <li className="grid grid-cols-[6.5rem_1fr_2.5rem] items-center gap-2 text-sm">
-      <span className="truncate text-muted-foreground">{label}</span>
-      <span aria-hidden className="h-2 overflow-hidden rounded-r bg-muted">
-        <span
-          className="block h-full rounded-r bg-primary"
-          style={{ width: `${max === 0 ? 0 : (value / max) * 100}%` }}
-        />
-      </span>
-      <span className="text-right tabular-nums">{value}</span>
-    </li>
-  );
-}
 
 const rate = (value: number | null) => (value === null ? undefined : `${value}%`);
 
@@ -49,7 +33,7 @@ export default async function ApplicationStatsPage() {
     listApplications(supabase),
     listApplicationEvents(supabase),
   ]);
-  const today = new Date().toISOString().slice(0, 10);
+  const { today } = await getUserClock();
   const stats = applicationStats(applications, events, today);
 
   const funnel = [

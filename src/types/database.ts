@@ -175,16 +175,42 @@ isOneToOne: false
       referencedColumns: ["id","user_id"]
     }
                   ]
-                },"interview_questions": {
+                },"interview_answers": {
                   Row: {
-                    "answer": string | null,"category": string | null,"created_at": string,"feedback": Json | null,"id": string,"position": number,"question": string,"session_id": string,"updated_at": string,"user_id": string
+                    "answer": string,"answer_hash": string,"created_at": string,"feedback": Json | null,"id": string,"model": string | null,"prompt_version": string | null,"question_id": string,"rating": string | null,"session_id": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "answer"?: string | null,"category"?: string | null,"created_at"?: string,"feedback"?: Json | null,"id"?: string,"position": number,"question": string,"session_id": string,"updated_at"?: string,"user_id": string
+                    "answer": string,"answer_hash": string,"created_at"?: string,"feedback"?: Json | null,"id"?: string,"model"?: string | null,"prompt_version"?: string | null,"question_id": string,"rating"?: string | null,"session_id": string,"user_id": string
                   }
                   Update: {
-                    "answer"?: string | null,"category"?: string | null,"created_at"?: string,"feedback"?: Json | null,"id"?: string,"position"?: number,"question"?: string,"session_id"?: string,"updated_at"?: string,"user_id"?: string
+                    "answer"?: string,"answer_hash"?: string,"created_at"?: string,"feedback"?: Json | null,"id"?: string,"model"?: string | null,"prompt_version"?: string | null,"question_id"?: string,"rating"?: string | null,"session_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "interview_answers_question_id_user_id_fkey"
+      columns: ["question_id","user_id"]
+isOneToOne: false
+      referencedRelation: "interview_questions"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "interview_answers_session_id_user_id_fkey"
+      columns: ["session_id","user_id"]
+isOneToOne: false
+      referencedRelation: "interview_sessions"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"interview_questions": {
+                  Row: {
+                    "category": string,"created_at": string,"id": string,"job_quote": string,"position": number,"question": string,"session_id": string,"structure_name": string,"structure_steps": (string)[],"updated_at": string,"user_id": string,"why_it_may_come_up": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "category": string,"created_at"?: string,"id"?: string,"job_quote"?: string,"position": number,"question": string,"session_id": string,"structure_name"?: string,"structure_steps"?: (string)[],"updated_at"?: string,"user_id": string,"why_it_may_come_up"?: string
+                  }
+                  Update: {
+                    "category"?: string,"created_at"?: string,"id"?: string,"job_quote"?: string,"position"?: number,"question"?: string,"session_id"?: string,"structure_name"?: string,"structure_steps"?: (string)[],"updated_at"?: string,"user_id"?: string,"why_it_may_come_up"?: string
                   }
                   Relationships: [
                     {
@@ -197,14 +223,14 @@ isOneToOne: false
                   ]
                 },"interview_sessions": {
                   Row: {
-                    "application_id": string | null,"created_at": string,"id": string,"job_id": string | null,"kind": Database["public"]['Enums']["interview_kind"],"updated_at": string,"user_id": string
+                    "application_id": string | null,"company": string,"completed_at": string | null,"created_at": string,"had_job_text": boolean,"id": string,"job_id": string | null,"kind": Database["public"]['Enums']["interview_kind"],"mode": string,"model": string,"prompt_version": string,"role_title": string,"status": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "application_id"?: string | null,"created_at"?: string,"id"?: string,"job_id"?: string | null,"kind"?: Database["public"]['Enums']["interview_kind"],"updated_at"?: string,"user_id": string
+                    "application_id"?: string | null,"company": string,"completed_at"?: string | null,"created_at"?: string,"had_job_text"?: boolean,"id"?: string,"job_id"?: string | null,"kind"?: Database["public"]['Enums']["interview_kind"],"mode"?: string,"model": string,"prompt_version": string,"role_title": string,"status"?: string,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "application_id"?: string | null,"created_at"?: string,"id"?: string,"job_id"?: string | null,"kind"?: Database["public"]['Enums']["interview_kind"],"updated_at"?: string,"user_id"?: string
+                    "application_id"?: string | null,"company"?: string,"completed_at"?: string | null,"created_at"?: string,"had_job_text"?: boolean,"id"?: string,"job_id"?: string | null,"kind"?: Database["public"]['Enums']["interview_kind"],"mode"?: string,"model"?: string,"prompt_version"?: string,"role_title"?: string,"status"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -277,14 +303,14 @@ isOneToOne: false
                   ]
                 },"notifications": {
                   Row: {
-                    "body": string,"created_at": string,"id": string,"link": string | null,"read_at": string | null,"title": string,"type": string,"user_id": string
+                    "body": string,"created_at": string,"dedupe_key": string,"dismissed_at": string | null,"id": string,"link": string | null,"read_at": string | null,"title": string,"type": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "body"?: string,"created_at"?: string,"id"?: string,"link"?: string | null,"read_at"?: string | null,"title": string,"type": string,"user_id": string
+                    "body"?: string,"created_at"?: string,"dedupe_key": string,"dismissed_at"?: string | null,"id"?: string,"link"?: string | null,"read_at"?: string | null,"title": string,"type": string,"user_id": string
                   }
                   Update: {
-                    "body"?: string,"created_at"?: string,"id"?: string,"link"?: string | null,"read_at"?: string | null,"title"?: string,"type"?: string,"user_id"?: string
+                    "body"?: string,"created_at"?: string,"dedupe_key"?: string,"dismissed_at"?: string | null,"id"?: string,"link"?: string | null,"read_at"?: string | null,"title"?: string,"type"?: string,"user_id"?: string
                   }
                   Relationships: [
                     
@@ -351,14 +377,14 @@ isOneToOne: false
                   ]
                 },"user_preferences": {
                   Row: {
-                    "created_at": string,"desired_locations": (string)[],"desired_titles": (string)[],"email_notifications": boolean,"employment_types": (Database["public"]['Enums']["employment_type"])[],"experience_level": Database["public"]['Enums']["experience_level"],"min_salary": number | null,"remote_policies": (Database["public"]['Enums']["remote_policy"])[],"salary_currency": string,"updated_at": string,"user_id": string
+                    "created_at": string,"desired_locations": (string)[],"desired_titles": (string)[],"email_notifications": boolean,"employment_types": (Database["public"]['Enums']["employment_type"])[],"experience_level": Database["public"]['Enums']["experience_level"],"min_salary": number | null,"notifications_checked_at": string | null,"notify_follow_ups": boolean,"notify_interviews": boolean,"notify_job_matches": boolean,"notify_saved_jobs": boolean,"remote_policies": (Database["public"]['Enums']["remote_policy"])[],"salary_currency": string,"timezone": string | null,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"desired_locations"?: (string)[],"desired_titles"?: (string)[],"email_notifications"?: boolean,"employment_types"?: (Database["public"]['Enums']["employment_type"])[],"experience_level"?: Database["public"]['Enums']["experience_level"],"min_salary"?: number | null,"remote_policies"?: (Database["public"]['Enums']["remote_policy"])[],"salary_currency"?: string,"updated_at"?: string,"user_id": string
+                    "created_at"?: string,"desired_locations"?: (string)[],"desired_titles"?: (string)[],"email_notifications"?: boolean,"employment_types"?: (Database["public"]['Enums']["employment_type"])[],"experience_level"?: Database["public"]['Enums']["experience_level"],"min_salary"?: number | null,"notifications_checked_at"?: string | null,"notify_follow_ups"?: boolean,"notify_interviews"?: boolean,"notify_job_matches"?: boolean,"notify_saved_jobs"?: boolean,"remote_policies"?: (Database["public"]['Enums']["remote_policy"])[],"salary_currency"?: string,"timezone"?: string | null,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"desired_locations"?: (string)[],"desired_titles"?: (string)[],"email_notifications"?: boolean,"employment_types"?: (Database["public"]['Enums']["employment_type"])[],"experience_level"?: Database["public"]['Enums']["experience_level"],"min_salary"?: number | null,"remote_policies"?: (Database["public"]['Enums']["remote_policy"])[],"salary_currency"?: string,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"desired_locations"?: (string)[],"desired_titles"?: (string)[],"email_notifications"?: boolean,"employment_types"?: (Database["public"]['Enums']["employment_type"])[],"experience_level"?: Database["public"]['Enums']["experience_level"],"min_salary"?: number | null,"notifications_checked_at"?: string | null,"notify_follow_ups"?: boolean,"notify_interviews"?: boolean,"notify_job_matches"?: boolean,"notify_saved_jobs"?: boolean,"remote_policies"?: (Database["public"]['Enums']["remote_policy"])[],"salary_currency"?: string,"timezone"?: string | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     

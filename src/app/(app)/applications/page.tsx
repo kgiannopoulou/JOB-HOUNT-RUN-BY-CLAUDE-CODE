@@ -21,6 +21,7 @@ import {
 } from "@/server/applications/queries";
 import { requireUser } from "@/server/auth/user";
 import { createClient } from "@/server/supabase/server";
+import { getUserClock } from "@/server/time";
 
 export const metadata: Metadata = { title: "Applications" };
 
@@ -31,7 +32,7 @@ export default async function ApplicationsPage({ searchParams }: PageProps<"/app
   const filters = parseApplicationFilters(await searchParams);
 
   const supabase = await createClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const { today } = await getUserClock();
   const soon = addDays(today, REMINDER_WINDOW_DAYS);
   const [applications, reminders, interviews] = await Promise.all([
     listApplications(supabase),

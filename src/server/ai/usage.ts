@@ -7,7 +7,9 @@ export type AiFeature =
   | "cv_analysis"
   | "job_match"
   | "cv_tailor"
-  | "cover_letter";
+  | "cover_letter"
+  | "interview_questions"
+  | "interview_feedback";
 
 export type AiTokens = {
   input_tokens: number;

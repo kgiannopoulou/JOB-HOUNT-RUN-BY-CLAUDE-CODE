@@ -47,7 +47,7 @@ function median(values: number[]): number | null {
 }
 
 /** The Monday of the week holding this date. */
-function weekStart(day: string): string {
+export function weekStart(day: string): string {
   const date = new Date(`${day}T00:00:00Z`);
   const fromMonday = (date.getUTCDay() + 6) % 7;
   return new Date(date.getTime() - fromMonday * DAY).toISOString().slice(0, 10);

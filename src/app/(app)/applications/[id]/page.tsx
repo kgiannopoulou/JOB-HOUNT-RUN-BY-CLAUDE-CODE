@@ -38,6 +38,7 @@ import {
 import { getApplicationDetail, listDocumentChoices } from "@/server/applications/queries";
 import { requireUser } from "@/server/auth/user";
 import { createClient } from "@/server/supabase/server";
+import { getUserClock } from "@/server/time";
 
 export const metadata: Metadata = { title: "Application" };
 
@@ -71,7 +72,7 @@ export default async function ApplicationPage({ params }: PageProps<"/applicatio
   if (!detail) notFound();
 
   const { application, interviews, reminders, events } = detail;
-  const today = new Date().toISOString().slice(0, 10);
+  const { today } = await getUserClock();
 
   return (
     <>
@@ -106,6 +107,10 @@ export default async function ApplicationPage({ params }: PageProps<"/applicatio
           </Button>
         </div>
       )}
+
+      <Button asChild variant="outline" size="lg" className="w-fit">
+        <Link href={`/interview?application=${id}`}>Prepare for the interview</Link>
+      </Button>
 
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_22rem]">
         <div className="min-w-0 space-y-6">

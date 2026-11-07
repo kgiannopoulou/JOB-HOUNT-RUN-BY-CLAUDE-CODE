@@ -1,5 +1,6 @@
 import {
   BriefcaseBusiness,
+  ChartColumn,
   FileText,
   Gauge,
   KanbanSquare,
@@ -24,6 +25,7 @@ export const primaryNav: NavItem[] = [
   { title: "Matches", href: "/matches", icon: Gauge },
   { title: "Applications", href: "/applications", icon: KanbanSquare },
   { title: "Interview prep", href: "/interview", icon: MessagesSquare },
+  { title: "Analytics", href: "/analytics", icon: ChartColumn },
 ];
 
 export const secondaryNav: NavItem[] = [

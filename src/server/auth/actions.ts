@@ -8,6 +8,8 @@ import {
   successState,
   type ActionState,
 } from "@/lib/action-state";
+import { passwordChangedNotification } from "@/lib/notifications/rules";
+import { storeNotifications } from "@/server/notifications/deliver";
 import { authErrorMessage } from "@/lib/auth-errors";
 import { safeRedirectPath } from "@/lib/routes";
 import { getCurrentUser } from "@/server/auth/user";
@@ -126,7 +128,8 @@ export async function updatePassword(
   });
   if (!parsed.success) return firstIssue(parsed.error);
 
-  if (!(await getCurrentUser())) {
+  const user = await getCurrentUser();
+  if (!user) {
     return errorState(
       "Your reset link has expired. Please request a new one.",
     );
@@ -137,6 +140,13 @@ export async function updatePassword(
     password: parsed.data.password,
   });
   if (error) return errorState(authErrorMessage(error));
+
+  try {
+    await storeNotifications(user.id, [passwordChangedNotification(new Date())]);
+  } catch {
+    // The password has changed. A missing notice is no reason to report a failure.
+    console.error("Saving the password notification failed");
+  }
 
   redirect("/dashboard");
 }

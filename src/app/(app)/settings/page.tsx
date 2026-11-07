@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AppearanceSettings } from "@/components/settings/appearance-settings";
+import { NotificationSettingsForm } from "@/components/settings/notification-settings-form";
 import { PreferencesForm } from "@/components/settings/preferences-form";
 import { ProfileForm } from "@/components/settings/profile-form";
 import { PageHeader } from "@/components/shared/page-header";
@@ -42,6 +43,7 @@ export default async function SettingsPage() {
           <TabsList>
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="preferences">Job preferences</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="privacy">Privacy</TabsTrigger>
           </TabsList>
@@ -71,6 +73,21 @@ export default async function SettingsPage() {
             </CardHeader>
             <CardContent>
               <PreferencesForm preferences={preferences.data} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <Card>
+            <CardHeader>
+              <CardTitle>Notifications</CardTitle>
+              <CardDescription>Choose what JOB HUNT tells you about.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <NotificationSettingsForm
+                preferences={preferences.data}
+                timeZones={["UTC", ...Intl.supportedValuesOf("timeZone")]}
+              />
             </CardContent>
           </Card>
         </TabsContent>

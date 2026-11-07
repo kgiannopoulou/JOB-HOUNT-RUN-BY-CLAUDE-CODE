@@ -23,11 +23,10 @@ import {
 import { listApplications } from "@/server/applications/queries";
 import { getCurrentUser } from "@/server/auth/user";
 import { createClient } from "@/server/supabase/server";
+import { getUserClock } from "@/server/time";
 
 const uuid = z.uuid();
 const status = z.enum(applicationStatuses);
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 async function signedInUser(next = "/applications") {
   const user = await getCurrentUser();
@@ -69,7 +68,7 @@ export async function createApplication(_: ActionState, formData: FormData): Pro
       ...rest,
       user_id: user.id,
       job_url: job_url || null,
-      applied_at: appliedDateAfterMove(rest.status, null, today(), applied_at),
+      applied_at: appliedDateAfterMove(rest.status, null, (await getUserClock()).today, applied_at),
     })
     .select("id")
     .single();
@@ -172,7 +171,12 @@ export async function moveApplication(_: ActionState, formData: FormData): Promi
     .from("applications")
     .update({
       status: to,
-      applied_at: appliedDateAfterMove(to, current.applied_at, today(), appliedAt),
+      applied_at: appliedDateAfterMove(
+        to,
+        current.applied_at,
+        (await getUserClock()).today,
+        appliedAt,
+      ),
     })
     .eq("id", applicationId)
     .eq("status", from)
@@ -265,6 +269,15 @@ export async function setReminderDone(_: ActionState, formData: FormData): Promi
     .update({ completed_at: done ? new Date().toISOString() : null })
     .eq("id", id.data);
   if (error) return errorState("This reminder could not be updated. Please try again.");
+
+  // A finished reminder should not leave an unread notification behind.
+  if (done) {
+    await supabase
+      .from("notifications")
+      .update({ read_at: new Date().toISOString() })
+      .like("dedupe_key", `reminder:${id.data}:%`)
+      .is("read_at", null);
+  }
 
   refresh(applicationId.data);
   return successState(done ? "Reminder done." : "Reminder reopened.");

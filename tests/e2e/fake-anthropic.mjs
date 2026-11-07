@@ -153,6 +153,78 @@ const letter = {
   job_keywords: ["SQL", "dbt"],
 };
 
+const interviewQuestions = {
+  questions: [
+    {
+      category: "technical",
+      question: "How would you speed up a slow SQL report?",
+      why_it_may_come_up: "The role asks for strong SQL, so this could come up.",
+      job_quote: "You must have strong SQL skills",
+      structure_name: "Problem, approach, result",
+      structure_steps: ["Name the problem", "Explain your approach", "State the result"],
+    },
+    {
+      category: "behavioural",
+      question: "Tell me about a time you built a report for a team.",
+      // A promise nobody can make: this sentence must not reach the page.
+      why_it_may_come_up: "You will definitely be asked this.",
+      job_quote: "",
+      structure_name: "STAR",
+      structure_steps: ["Situation", "Task", "Action", "Result"],
+    },
+    {
+      category: "behavioural",
+      // Invented employer: this question must be dropped.
+      question: "Tell me about your time working at Google.",
+      why_it_may_come_up: "",
+      job_quote: "",
+      structure_name: "STAR",
+      structure_steps: ["Situation"],
+    },
+    {
+      category: "company",
+      question: "How would you build reports for product teams here?",
+      why_it_may_come_up: "The posting mentions this work.",
+      job_quote: "Build reports for product teams",
+      structure_name: "",
+      structure_steps: [],
+    },
+    {
+      category: "company",
+      // Invented company fact with no quote: this question must be dropped.
+      question: "How do you feel about the recent merger with Globex?",
+      why_it_may_come_up: "",
+      job_quote: "",
+      structure_name: "",
+      structure_steps: [],
+    },
+  ],
+};
+
+function reviewItem(index) {
+  return {
+    question_index: index,
+    criteria: [
+      { criterion: "relevance", rating: "strong", comment: "It answers the question.", answer_quote: "indexes" },
+      // No quote, so this strong rating must drop to adequate.
+      { criterion: "structure", rating: "strong", comment: "Easy to follow.", answer_quote: "" },
+      { criterion: "specificity", rating: "adequate", comment: "Some detail.", answer_quote: "" },
+      { criterion: "impact", rating: "weak", comment: "No result is given.", answer_quote: "" },
+    ],
+    strengths: [
+      { text: "You named a concrete technique.", answer_quote: "indexes" },
+      { text: "Invented praise.", answer_quote: "words that are not in the answer" },
+    ],
+    weaknesses: ["The result is missing."],
+    improvements: [
+      "Add the result you really achieved.",
+      // A figure the person never gave: this advice must be removed.
+      "Say the report ran 80% faster.",
+    ],
+    summary: "A reasonable start that needs a result.",
+  };
+}
+
 function answer(body) {
   const system = body.system.map((block) => block.text).join("\n");
   const input = body.messages[0].content.map((block) => block.text).join("\n");
@@ -164,6 +236,11 @@ function answer(body) {
   else if (system.includes("review CVs")) output = analysis;
   else if (system.includes("present their verified CV")) output = tailored;
   else if (system.includes("write cover letters")) output = letter;
+  else if (system.includes("prepare candidates")) output = interviewQuestions;
+  else if (system.includes("review written answers")) {
+    const count = (input.match(/candidate-answer/g) ?? []).length;
+    output = { items: Array.from({ length: count }, (_, index) => reviewItem(index)) };
+  }
   else output = input.includes("Rust is required") ? weakMatch : strongMatch;
 
   return {

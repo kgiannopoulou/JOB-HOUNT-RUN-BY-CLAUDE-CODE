@@ -48,6 +48,10 @@ A CV holds a name, address, phone number, employment history and sometimes more.
 | Application history cannot be written or altered by users | ✅ `tests/integration/applications.test.ts` |
 | Status rules enforced in the database, not only the app | ✅ `tests/integration/applications.test.ts` |
 | Job links limited to `http` and `https`, in the form and the database | ✅ |
+| Interview ratings, questions and answers written only by the server | ✅ `tests/integration/interview-notifications.test.ts` |
+| Contact details left out of interview requests | ✅ `tests/e2e/interview.spec.ts` |
+| Notifications cannot be forged, rewritten or used to link off the site | ✅ `tests/integration/interview-notifications.test.ts` |
+| Notifications cron protected by a secret | ✅ `tests/e2e/analytics.spec.ts` |
 | Security headers, rate limits of our own, MFA | Planned for Phase 11 |
 
 ## 6.3 AI-specific controls

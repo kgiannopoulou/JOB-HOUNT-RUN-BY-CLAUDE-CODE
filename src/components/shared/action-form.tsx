@@ -13,7 +13,9 @@ import { idleState, type ActionState } from "@/lib/action-state";
 export function submitKeepingFields(dispatch: (formData: FormData) => void) {
   return (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+    // The submitter carries the name and value of the button that was pressed.
+    const { submitter } = event.nativeEvent as SubmitEvent;
+    const formData = new FormData(event.currentTarget, submitter);
     startTransition(() => dispatch(formData));
   };
 }

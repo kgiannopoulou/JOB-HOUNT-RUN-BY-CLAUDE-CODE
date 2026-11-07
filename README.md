@@ -18,9 +18,11 @@ An AI-powered job search and career management platform. JOB HUNT will find rele
 | 6. AI job matching | ✅ Built and tested. See the note on live AI below |
 | 7. CV builder and cover letters | ✅ Built and tested. See the note on live AI below |
 | 8. Application tracker | ✅ Complete |
-| 9 to 11. Interviews, analytics, launch | Planned, see the [roadmap](docs/07-roadmap.md) |
+| 9. Interview preparation | ✅ Built and tested. See the note on live AI below |
+| 10. Analytics and notifications | ✅ Complete. Notifications are in the app only |
+| 11. Launch | Planned, see the [roadmap](docs/07-roadmap.md) |
 
-**What works today:** registration with email confirmation, login, logout, password reset, private profiles and preferences, public job search over real listings with filters, saved jobs, private CV upload (PDF and DOCX), AI extraction with a required review step, a CV analysis dashboard, job matching with an explained score, side-by-side job comparison, CV versions with three templates and custom sections, job-specific tailoring, cover letters with a choice of tone, PDF export of both, and an application tracker with a Kanban board, search, a calendar, reminders, history and statistics. Interview preparation is a protected page with no feature behind it yet, and it says so.
+**What works today:** registration with email confirmation, login, logout, password reset, private profiles and preferences, public job search over real listings with filters, saved jobs, private CV upload (PDF and DOCX), AI extraction with a required review step, a CV analysis dashboard, job matching with an explained score, side-by-side job comparison, CV versions with three templates and custom sections, job-specific tailoring, cover letters with a choice of tone, PDF export of both, an application tracker with a Kanban board, search, a calendar, reminders, history and statistics, interview practice and mock interviews with feedback on written answers, an analytics dashboard, and in-app notifications with preferences and a per-user time zone.
 
 **Live AI:** the AI features need an `ANTHROPIC_API_KEY`. Without one the app still runs: CV upload and manual entry work, and AI buttons explain that they are off. Automated tests send AI calls to a local stand-in for the API, so the checks against the real service are in `npm run test:ai`, which has not been run yet because the project has no key.
 
@@ -105,6 +107,9 @@ src/
     builder/          CV preview, layout editor and tailoring report
     letters/          Cover letter forms
     applications/     Board, filters and application forms
+    interview/        Practice, mock interview and feedback
+    analytics/        Weekly charts
+    notifications/    Bell, sync and actions
     settings/         Settings forms
     providers/        Theme provider
   config/             Site details and navigation

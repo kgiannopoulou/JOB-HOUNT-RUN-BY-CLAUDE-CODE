@@ -72,7 +72,7 @@ The web app uses server actions for these operations (`src/server/cv/actions.ts`
 | GET, POST | `/saved-searches` | List or create |
 | PATCH, DELETE | `/saved-searches/:id` | Update or delete |
 
-> **As built:** Phases 7 and 8 use server actions in `src/server/builder`, `src/server/letters` and `src/server/applications`, like the earlier phases. The only new HTTP routes are the PDF downloads, `/cv/versions/[id]/pdf` and `/cover-letters/[id]/pdf`. They return 404 for anyone but the owner, and 409 until the document has been reviewed. The tables below are the plan for a public API.
+> **As built:** Phases 7 to 10 use server actions in `src/server`, like the earlier phases. The new HTTP routes are the PDF downloads, `/cv/versions/[id]/pdf` and `/cover-letters/[id]/pdf`, which return 404 for anyone but the owner and 409 until the document has been reviewed, and `/api/internal/cron/notifications`, which needs `CRON_SECRET`. The tables below are the plan for a public API.
 
 ## AI features
 

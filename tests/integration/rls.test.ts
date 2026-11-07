@@ -86,13 +86,23 @@ beforeAll(async () => {
   );
   ids.application = application.id;
   const session = await must(
-    admin.from("interview_sessions").insert({ user_id }).select().single(),
+    admin
+      .from("interview_sessions")
+      .insert({ user_id, ...sessionFields })
+      .select()
+      .single(),
   );
   ids.session = session.id;
   const question = await must(
     admin
       .from("interview_questions")
-      .insert({ user_id, session_id: session.id, position: 0, question: "Why us?" })
+      .insert({
+        user_id,
+        session_id: session.id,
+        position: 0,
+        question: "Why us?",
+        category: "company",
+      })
       .select()
       .single(),
   );
@@ -100,7 +110,7 @@ beforeAll(async () => {
   const notification = await must(
     admin
       .from("notifications")
-      .insert({ user_id, type: "info", title: "Hello" })
+      .insert({ user_id, type: "account", title: "Hello", dedupe_key: "hello" })
       .select()
       .single(),
   );
@@ -144,6 +154,13 @@ describe.each(privateTables)("$table", ({ table, key }) => {
   });
 });
 
+const sessionFields = {
+  company: "Acme",
+  role_title: "Analyst",
+  prompt_version: "v1",
+  model: "test",
+};
+
 const letterFields = {
   company: "Acme",
   role_title: "Analyst",
@@ -174,7 +191,7 @@ describe("writing to another user's data", () => {
       bob.client.from("resumes").insert({ user_id: alice.id, title: "Fake" }),
       bob.client.from("applications").insert({ user_id: alice.id, company: "X", role_title: "Y" }),
       bob.client.from("cover_letters").insert({ user_id: alice.id, ...letterFields }),
-      bob.client.from("interview_sessions").insert({ user_id: alice.id }),
+      bob.client.from("interview_sessions").insert({ user_id: alice.id, ...sessionFields }),
       bob.client.from("saved_jobs").insert({ user_id: alice.id, job_id: privateJobId }),
     ]);
     for (const { error } of attempts) expect(error?.code).toBe("42501");
@@ -221,8 +238,10 @@ describe("links between records", () => {
       session_id: ids.session,
       position: 9,
       question: "Injected",
+      category: "technical",
     });
-    expect(error?.code).toBe("23503");
+    // Users cannot write questions at all, so this is refused before the foreign key.
+    expect(error?.code).toBe("42501");
   });
 
   it("allows only one application per job", async () => {
@@ -248,7 +267,7 @@ describe("rows only the server may write", () => {
   it("stops users creating notifications", async () => {
     const { error } = await alice.client
       .from("notifications")
-      .insert({ user_id: alice.id, type: "x", title: "Fake" });
+      .insert({ user_id: alice.id, type: "account", title: "Fake", dedupe_key: "fake" });
     expect(error?.code).toBe("42501");
   });
 

@@ -121,7 +121,7 @@ The default for every feature is **Claude Opus 5.5** (`claude-opus-5-5`), read f
 | CV tailoring | Structured | medium | Request, a new saved version each time |
 | Cover letter | Structured | medium | Request, a new saved letter each time |
 | Interview questions | Structured | medium | Request |
-| Answer feedback | Structured | medium | Streamed |
+| Answer feedback | Structured | medium | Request. One call for a whole mock interview |
 
 ### API details the code must respect
 
@@ -172,7 +172,39 @@ These checks catch names, numbers and the job's own terms. They cannot catch a f
 
 The allowed status moves are one table in `src/lib/applications/status.ts`, repeated in the database as `application_move_allowed()`. A test compares all 36 pairs. Triggers write the history, so no code path can skip it. Moves update only if the status is still the one the page showed, so a stale tab cannot overwrite a newer change.
 
-Interview times are stored without a time zone, and reminders and application dates are calendar dates. What the user typed is what they see, in any zone. "Today" is worked out in UTC, so a reminder can change state up to three hours late in Athens.
+Interview times are stored without a time zone, and reminders and application dates are calendar dates. What the user typed is what they see, in any zone. "Today" comes from the user's own time zone, which the browser reports on first use and Settings can change. Until then it is UTC.
+
+### Interview preparation
+
+Rules in `src/lib/interview` decide what is shown, not the model.
+
+| Rule | Detail |
+| ---- | ---- |
+| Company facts | The job posting is the only verified source about an employer. A company question must quote it and name nothing it lacks, or it is dropped. With no posting there are no company questions |
+| The candidate | A behavioural question may name only what the posting or CV contains |
+| No promises | Wording that says a question will be asked is removed, and every session carries a notice that these are practice questions |
+| Overall rating | Fixed rule over four criteria: weak if relevance is weak or two criteria are weak, strong if three are strong and none weak, otherwise adequate |
+| Evidence | A strong rating or a strength needs a quote really in the answer. Otherwise it is lowered or removed |
+| Advice | Advice containing a figure the person never gave is removed, because it could be repeated as true |
+| Cost | Answers under 15 words are rated without an AI call. An unchanged answer reuses its feedback |
+
+Each answer is stored before the AI is called, so a failed call loses nothing. These checks cover names, numbers and quotes. They cannot judge whether advice is good, and the same limits as generated documents apply.
+
+### Notifications
+
+`planNotifications` in `src/lib/notifications/rules.ts` reads records and returns drafts. It writes nothing, so every rule is tested alone. `deliverNotifications` then stores them.
+
+| Type | Rule | Preference |
+| ---- | ---- | ---------- |
+| Follow-up | A reminder is due, or an application has sat at Applied for 14 days with no reminder or interview | Yes |
+| Interview | A recorded interview is within 48 hours | Yes |
+| Saved job | A saved job is no longer listed and has not been applied to | Yes |
+| New job | A listing from the last 7 days has a target title in its title and fits preferred locations. At most 5 per run | Yes |
+| Account | The password changed | No, always sent |
+
+Each notification has a `dedupe_key` naming the event, unique per user, so repeat or overlapping runs cannot duplicate it. Dismissing keeps the row, because deleting it would free the key. A moved reminder or interview has a new key, so it notifies again. Runs happen when the app loads, at most every 15 minutes, and daily through `/api/internal/cron/notifications`.
+
+Notifications appear in the app only. Email needs a sending service, which is not set up.
 
 ### Cost control
 

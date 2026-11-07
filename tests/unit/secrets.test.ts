@@ -40,10 +40,13 @@ describe("secret handling", () => {
         f.file !== "src/server/supabase/admin.ts",
     );
     expect(users.map((f) => f.file).sort()).toEqual([
+      "src/app/api/internal/cron/notifications/route.ts",
       "src/app/api/internal/cron/sync-jobs/route.ts",
       "src/server/ai/usage.ts",
       "src/server/cv/store.ts",
+      "src/server/interview/store.ts",
       "src/server/matching/store.ts",
+      "src/server/notifications/deliver.ts",
     ]);
   });
 
@@ -62,6 +65,9 @@ describe("secret handling", () => {
       "ai/usage.ts",
       "cv/store.ts",
       "matching/store.ts",
+      "interview/store.ts",
+      "notifications/deliver.ts",
+      "cron-auth.ts",
     ]) {
       const file = files.find((f) => f.file === `src/server/${name}`);
       expect(file?.text).toContain('import "server-only"');
