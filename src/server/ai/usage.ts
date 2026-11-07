@@ -2,7 +2,12 @@ import "server-only";
 
 import { createAdminClient } from "@/server/supabase/admin";
 
-export type AiFeature = "cv_extract" | "cv_analysis" | "job_match";
+export type AiFeature =
+  | "cv_extract"
+  | "cv_analysis"
+  | "job_match"
+  | "cv_tailor"
+  | "cover_letter";
 
 export type AiTokens = {
   input_tokens: number;

@@ -83,8 +83,8 @@ Never add a `NEXT_PUBLIC_` prefix to the secret key, because that would publish 
 
 | Command | Needs | Covers |
 | ------- | ----- | ------ |
-| `npm test` | Nothing | Normalisation, salary parsing, duplicates, filters, auth logic, secret handling |
-| `npm run test:integration` | Local Supabase | Row level security, search, job sync, authentication |
+| `npm test` | Nothing | Normalisation, salary parsing, duplicates, filters, auth logic, secret handling, tailoring and letter checks, PDF rendering, tracker rules |
+| `npm run test:integration` | Local Supabase | Row level security, search, job sync, authentication, CV versions, letters, application CRUD and status moves |
 | `npm run test:e2e` | Local Supabase and `npm run build` | Full browser flows, using real emails from the local mail catcher |
 
 Integration tests refuse to run against anything but a local database, because they create and delete users. No test calls a real job provider.

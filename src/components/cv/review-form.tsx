@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { idleState } from "@/lib/action-state";
+import { idleState, type ActionState } from "@/lib/action-state";
 import type { UngroundedField } from "@/lib/cv/grounding";
 import type { CvProfile } from "@/lib/cv/profile";
 import { saveVerifiedProfile } from "@/server/cv/actions";
@@ -82,10 +82,22 @@ type ReviewFormProps = {
   initial: CvProfile;
   flagged: UngroundedField[];
   verified: boolean;
+  /** CV versions reuse this form, with their own action and wording. */
+  action?: (state: ActionState, formData: FormData) => Promise<ActionState>;
+  flaggedText?: string;
+  confirmText?: string;
 };
 
-export function ReviewForm({ resumeId, initial, flagged, verified }: ReviewFormProps) {
-  const [state, action, pending] = useActionState(saveVerifiedProfile, idleState);
+export function ReviewForm({
+  resumeId,
+  initial,
+  flagged,
+  verified,
+  action: saveAction = saveVerifiedProfile,
+  flaggedText = "These values were not found word for word in your file:",
+  confirmText = "I have checked these details and they are accurate. Analysis and job matching will use only what is saved here.",
+}: ReviewFormProps) {
+  const [state, action, pending] = useActionState(saveAction, idleState);
   const [profile, setProfile] = useState(initial);
   const [skillsText, setSkillsText] = useState(initial.skills.join("\n"));
   const [linksText, setLinksText] = useState(initial.contact.links.join("\n"));
@@ -111,9 +123,7 @@ export function ReviewForm({ resumeId, initial, flagged, verified }: ReviewFormP
           <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
           <div className="space-y-1">
             <p className="font-medium">Check these first</p>
-            <p className="text-muted-foreground">
-              These values were not found word for word in your file:
-            </p>
+            <p className="text-muted-foreground">{flaggedText}</p>
             <ul className="list-inside list-disc">
               {flagged.map((field) => (
                 <li key={`${field.section}-${field.value}`}>
@@ -316,8 +326,7 @@ export function ReviewForm({ resumeId, initial, flagged, verified }: ReviewFormP
         <FormMessage state={state} />
         <label className="flex items-start gap-2 text-sm">
           <input type="checkbox" name="confirmed" required className="mt-0.5 size-4" />
-          I have checked these details and they are accurate. Analysis and job
-          matching will use only what is saved here.
+          {confirmText}
         </label>
         <Button type="submit" size="lg" disabled={pending}>
           {pending ? "Saving…" : verified ? "Save changes" : "Confirm details"}

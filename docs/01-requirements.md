@@ -60,7 +60,7 @@ Priority: **M** must have, **S** should have, **C** could have.
 | CV-2 | Parse the upload into structured sections with AI | M |
 | CV-3 | Review and correct parsed data before it is used | M |
 | CV-4 | Keep a master CV and any number of tailored versions | M |
-| CV-5 | Export any version to PDF and DOCX | S |
+| CV-5 | Export any version to PDF. DOCX export is not built | S |
 | CV-6 | Report ATS readability problems such as tables or missing dates | C |
 
 ### Job discovery (JOB)
@@ -92,7 +92,7 @@ Priority: **M** must have, **S** should have, **C** could have.
 | ID | Requirement | Pri |
 | -- | ----------- | --- |
 | APP-1 | Create an application from a saved job or by hand | M |
-| APP-2 | Move it through: saved, applied, screening, interview, offer, accepted, rejected, withdrawn | M |
+| APP-2 | Move it through: saved, applied, assessment, interview, offer, rejected | M |
 | APP-3 | Record the exact CV version and cover letter that were sent | M |
 | APP-4 | Keep notes, contacts, dates and a timeline of events | M |
 | APP-5 | Warn before creating a duplicate application to the same job or company and role | M |

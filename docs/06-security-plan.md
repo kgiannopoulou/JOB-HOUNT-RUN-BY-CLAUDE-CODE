@@ -42,6 +42,12 @@ A CV holds a name, address, phone number, employment history and sometimes more.
 | Per-user daily AI limit, enforced atomically | ✅ `tests/integration/cv.test.ts` |
 | Contact details left out of analysis and matching requests | ✅ `tests/e2e/cv.spec.ts` |
 | Logs hold only the feature and error code, never CV or prompt text | ✅ `tests/unit/ai-gateway.test.ts` |
+| Generated CVs and letters cannot be exported until reviewed | ✅ `tests/e2e/builder.spec.ts` |
+| PDFs private to their owner and never cached or stored | ✅ `tests/e2e/builder.spec.ts` |
+| AI records on versions and letters cannot be changed by users | ✅ `tests/integration/builder.test.ts` |
+| Application history cannot be written or altered by users | ✅ `tests/integration/applications.test.ts` |
+| Status rules enforced in the database, not only the app | ✅ `tests/integration/applications.test.ts` |
+| Job links limited to `http` and `https`, in the form and the database | ✅ |
 | Security headers, rate limits of our own, MFA | Planned for Phase 11 |
 
 ## 6.3 AI-specific controls
@@ -52,7 +58,7 @@ Job descriptions come from third parties and can contain text written to manipul
 2. **No tools by default.** Scoring, analysis and writing calls have no tools, so injected text has nothing to trigger.
 3. **Constrained output.** Structured outputs restrict responses to the schema, and Zod validates them again.
 4. **Evidence checks.** Quotes offered as evidence must appear in the CV or job text. If they do not, the claim earns no credit, and a requirement the job does not contain is left out. See `src/lib/matching/score.ts`.
-5. **Fabrication checks.** Generated text is compared with the source CV, and new names and numbers are shown to the user for review. Extracted values not found in the uploaded file are flagged on the review screen.
+5. **Fabrication checks.** Generated text is compared with the source CV. In tailored CVs and cover letters, wording with a new name, number or job keyword is thrown out and shown to the user. The limits of these checks are in [the architecture](02-architecture.md#generated-documents). Extracted values not found in the uploaded file are flagged on the review screen.
 6. **Human review.** Nothing generated is sent anywhere automatically. The user reads and accepts it.
 7. **Safe rendering.** Output is treated as untrusted when displayed, including any links.
 8. **Regression tests.** Injection cases run in `tests/unit/match-score.test.ts` and, against the real model, in `npm run test:ai`.

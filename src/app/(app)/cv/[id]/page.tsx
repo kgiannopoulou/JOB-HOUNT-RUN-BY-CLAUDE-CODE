@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Download, PencilLine, ScanText, Sparkles, Star, Trash2 } from "lucide-react";
+import { notFound, redirect } from "next/navigation";
+import { Download, Layers, PencilLine, ScanText, Sparkles, Star, Trash2 } from "lucide-react";
 import { z } from "zod";
 
 import { AnalysisDashboard } from "@/components/cv/analysis-dashboard";
@@ -54,6 +54,7 @@ export default async function CvDetailPage({
   const supabase = await createClient();
   const resume = await getResume(supabase, id);
   if (!resume) notFound();
+  if (resume.kind === "version") redirect(`/cv/versions/${id}`);
 
   const profile = parseProfile(resume.content);
   const aiReady = isAiConfigured();
@@ -173,6 +174,11 @@ export default async function CvDetailPage({
                 {analysis ? "Update analysis" : "Analyse my CV"}
               </ActionButton>
             )}
+            <Button asChild variant="outline" size="lg">
+              <Link href="/cv#new-version">
+                <Layers data-icon="inline-start" /> Build a version
+              </Link>
+            </Button>
             {!resume.is_primary && (
               <ActionButton
                 action={setPrimaryCv}
@@ -223,7 +229,7 @@ export default async function CvDetailPage({
           <CardTitle>Delete this CV</CardTitle>
           <CardDescription>
             This removes the original file, its analysis and its job match results.
-            It cannot be undone.
+            Versions made from it are kept. It cannot be undone.
           </CardDescription>
         </CardHeader>
         <CardContent>

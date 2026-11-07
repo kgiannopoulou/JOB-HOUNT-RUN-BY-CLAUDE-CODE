@@ -1,8 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { profileIssues } from "@/lib/cv/profile";
+import { containsPhrase, normalizeForMatch } from "@/lib/cv/grounding";
 import { scoreMatch } from "@/lib/matching/score";
+import { tailorProfile } from "@/server/builder/ai";
 import { analyseProfile, extractProfile } from "@/server/cv/ai";
+import { generateLetter } from "@/server/letters/ai";
 import { compareProfileToJob, jobSourceText } from "@/server/matching/ai";
 
 import { sampleCvLines } from "../fixtures/documents";
@@ -61,5 +64,27 @@ describe.skipIf(!process.env.ANTHROPIC_API_KEY)("live Anthropic API", () => {
     expect(dbt?.importance).toBe("preferred");
     expect(dbt?.status).toBe("not_met");
     expect(result.mandatory.total).toBeGreaterThan(0);
+  });
+
+  it("tailors a CV without adding what the job asks for", async () => {
+    const { result } = await tailorProfile(user.id, sampleProfile, job);
+    expect(result.profile.experience[0].company).toBe("Example Analytics");
+    expect(result.profile.skills.toSorted()).toEqual(sampleProfile.skills.toSorted());
+    const text = normalizeForMatch(JSON.stringify(result.profile));
+    expect(containsPhrase(text, "dbt")).toBe(false);
+    expect(result.keywords.some((keyword) => keyword.term === "SQL" && keyword.found)).toBe(true);
+  });
+
+  it("writes a cover letter that names the job and claims nothing new", async () => {
+    const { letter } = await generateLetter({
+      userId: user.id,
+      profile: sampleProfile,
+      job,
+      tone: "concise",
+    });
+    expect(letter.content).toContain("Example Company");
+    expect(letter.content).toContain("Data Analyst");
+    expect(letter.content).toContain("Alex Example");
+    expect(containsPhrase(normalizeForMatch(letter.content), "dbt")).toBe(false);
   });
 });

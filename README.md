@@ -16,9 +16,11 @@ An AI-powered job search and career management platform. JOB HUNT will find rele
 | 4. Job discovery | ✅ Complete, with Remotive as the first source |
 | 5. AI CV analyzer | ✅ Built and tested. See the note on live AI below |
 | 6. AI job matching | ✅ Built and tested. See the note on live AI below |
-| 7 to 11. Cover letters, tracking, interviews, analytics, launch | Planned, see the [roadmap](docs/07-roadmap.md) |
+| 7. CV builder and cover letters | ✅ Built and tested. See the note on live AI below |
+| 8. Application tracker | ✅ Complete |
+| 9 to 11. Interviews, analytics, launch | Planned, see the [roadmap](docs/07-roadmap.md) |
 
-**What works today:** registration with email confirmation, login, logout, password reset, private profiles and preferences, public job search over real listings with filters, saved jobs, private CV upload (PDF and DOCX), AI extraction with a required review step, a CV analysis dashboard, job matching with an explained score, and side-by-side job comparison. Applications and interview preparation are protected pages with no feature behind them yet, and they say so.
+**What works today:** registration with email confirmation, login, logout, password reset, private profiles and preferences, public job search over real listings with filters, saved jobs, private CV upload (PDF and DOCX), AI extraction with a required review step, a CV analysis dashboard, job matching with an explained score, side-by-side job comparison, CV versions with three templates and custom sections, job-specific tailoring, cover letters with a choice of tone, PDF export of both, and an application tracker with a Kanban board, search, a calendar, reminders, history and statistics. Interview preparation is a protected page with no feature behind it yet, and it says so.
 
 **Live AI:** the AI features need an `ANTHROPIC_API_KEY`. Without one the app still runs: CV upload and manual entry work, and AI buttons explain that they are off. Automated tests send AI calls to a local stand-in for the API, so the checks against the real service are in `npm run test:ai`, which has not been run yet because the project has no key.
 
@@ -100,11 +102,14 @@ src/
     jobs/             Job search, filters and cards
     cv/               Upload, review form and analysis dashboard
     matching/         Requirement lists and the score notice
+    builder/          CV preview, layout editor and tailoring report
+    letters/          Cover letter forms
+    applications/     Board, filters and application forms
     settings/         Settings forms
     providers/        Theme provider
   config/             Site details and navigation
-  lib/                Shared utilities, CV rules and the scoring engine
-  server/             Server-only code: auth, Supabase clients, AI gateway, CV, matching, job sync
+  lib/                Shared utilities, CV rules, tailoring checks, the scoring engine, tracker rules
+  server/             Server-only code: auth, Supabase clients, AI gateway, CV, matching, PDF export, job sync
   types/              Generated database types
   proxy.ts            Session refresh and route redirects
 ```

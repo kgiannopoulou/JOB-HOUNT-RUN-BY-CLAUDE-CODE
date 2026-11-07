@@ -37,16 +37,76 @@ export type Database = {
                   Relationships: [
                     
                   ]
-                },"applications": {
+                },"application_events": {
                   Row: {
-                    "applied_at": string | null,"company": string,"cover_letter_id": string | null,"created_at": string,"id": string,"job_id": string | null,"next_action_at": string | null,"notes": string,"resume_id": string | null,"role_title": string,"status": Database["public"]['Enums']["application_status"],"updated_at": string,"user_id": string
+                    "application_id": string,"created_at": string,"from_status": Database["public"]['Enums']["application_status"] | null,"id": string,"kind": string,"to_status": Database["public"]['Enums']["application_status"] | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "applied_at"?: string | null,"company": string,"cover_letter_id"?: string | null,"created_at"?: string,"id"?: string,"job_id"?: string | null,"next_action_at"?: string | null,"notes"?: string,"resume_id"?: string | null,"role_title": string,"status"?: Database["public"]['Enums']["application_status"],"updated_at"?: string,"user_id": string
+                    "application_id": string,"created_at"?: string,"from_status"?: Database["public"]['Enums']["application_status"] | null,"id"?: string,"kind": string,"to_status"?: Database["public"]['Enums']["application_status"] | null,"user_id": string
                   }
                   Update: {
-                    "applied_at"?: string | null,"company"?: string,"cover_letter_id"?: string | null,"created_at"?: string,"id"?: string,"job_id"?: string | null,"next_action_at"?: string | null,"notes"?: string,"resume_id"?: string | null,"role_title"?: string,"status"?: Database["public"]['Enums']["application_status"],"updated_at"?: string,"user_id"?: string
+                    "application_id"?: string,"created_at"?: string,"from_status"?: Database["public"]['Enums']["application_status"] | null,"id"?: string,"kind"?: string,"to_status"?: Database["public"]['Enums']["application_status"] | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "application_events_application_id_user_id_fkey"
+      columns: ["application_id","user_id"]
+isOneToOne: false
+      referencedRelation: "applications"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"application_interviews": {
+                  Row: {
+                    "application_id": string,"created_at": string,"id": string,"interviewer": string,"kind": string,"location": string,"notes": string,"scheduled_at": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "application_id": string,"created_at"?: string,"id"?: string,"interviewer"?: string,"kind"?: string,"location"?: string,"notes"?: string,"scheduled_at": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "application_id"?: string,"created_at"?: string,"id"?: string,"interviewer"?: string,"kind"?: string,"location"?: string,"notes"?: string,"scheduled_at"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "application_interviews_application_id_user_id_fkey"
+      columns: ["application_id","user_id"]
+isOneToOne: false
+      referencedRelation: "applications"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"application_reminders": {
+                  Row: {
+                    "application_id": string,"completed_at": string | null,"created_at": string,"due_on": string,"id": string,"title": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "application_id": string,"completed_at"?: string | null,"created_at"?: string,"due_on": string,"id"?: string,"title": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "application_id"?: string,"completed_at"?: string | null,"created_at"?: string,"due_on"?: string,"id"?: string,"title"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "application_reminders_application_id_user_id_fkey"
+      columns: ["application_id","user_id"]
+isOneToOne: false
+      referencedRelation: "applications"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"applications": {
+                  Row: {
+                    "applied_at": string | null,"company": string,"cover_letter_id": string | null,"created_at": string,"id": string,"job_id": string | null,"job_url": string | null,"notes": string,"offer_deadline": string | null,"offer_details": string,"recruiter_email": string,"recruiter_name": string,"recruiter_phone": string,"rejection_reason": string,"resume_id": string | null,"role_title": string,"status": Database["public"]['Enums']["application_status"],"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "applied_at"?: string | null,"company": string,"cover_letter_id"?: string | null,"created_at"?: string,"id"?: string,"job_id"?: string | null,"job_url"?: string | null,"notes"?: string,"offer_deadline"?: string | null,"offer_details"?: string,"recruiter_email"?: string,"recruiter_name"?: string,"recruiter_phone"?: string,"rejection_reason"?: string,"resume_id"?: string | null,"role_title": string,"status"?: Database["public"]['Enums']["application_status"],"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "applied_at"?: string | null,"company"?: string,"cover_letter_id"?: string | null,"created_at"?: string,"id"?: string,"job_id"?: string | null,"job_url"?: string | null,"notes"?: string,"offer_deadline"?: string | null,"offer_details"?: string,"recruiter_email"?: string,"recruiter_name"?: string,"recruiter_phone"?: string,"rejection_reason"?: string,"resume_id"?: string | null,"role_title"?: string,"status"?: Database["public"]['Enums']["application_status"],"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -71,14 +131,14 @@ isOneToOne: false
                   ]
                 },"cover_letters": {
                   Row: {
-                    "content": string,"created_at": string,"id": string,"is_edited": boolean,"job_id": string | null,"resume_id": string | null,"tone": string,"updated_at": string,"user_id": string
+                    "company": string,"content": string,"created_at": string,"generated_content": string,"id": string,"is_edited": boolean,"job_id": string | null,"model": string,"prompt_version": string,"removed_sentences": NonNullable<Json>,"resume_id": string | null,"reviewed_at": string | null,"role_title": string,"tone": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "content"?: string,"created_at"?: string,"id"?: string,"is_edited"?: boolean,"job_id"?: string | null,"resume_id"?: string | null,"tone"?: string,"updated_at"?: string,"user_id": string
+                    "company": string,"content"?: string,"created_at"?: string,"generated_content": string,"id"?: string,"is_edited"?: boolean,"job_id"?: string | null,"model": string,"prompt_version": string,"removed_sentences"?: NonNullable<Json>,"resume_id"?: string | null,"reviewed_at"?: string | null,"role_title": string,"tone"?: string,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "content"?: string,"created_at"?: string,"id"?: string,"is_edited"?: boolean,"job_id"?: string | null,"resume_id"?: string | null,"tone"?: string,"updated_at"?: string,"user_id"?: string
+                    "company"?: string,"content"?: string,"created_at"?: string,"generated_content"?: string,"id"?: string,"is_edited"?: boolean,"job_id"?: string | null,"model"?: string,"prompt_version"?: string,"removed_sentences"?: NonNullable<Json>,"resume_id"?: string | null,"reviewed_at"?: string | null,"role_title"?: string,"tone"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -245,14 +305,14 @@ isOneToOne: false
                   ]
                 },"resumes": {
                   Row: {
-                    "content": Json | null,"created_at": string,"extracted_text": string | null,"file_name": string | null,"file_size": number | null,"file_type": string | null,"id": string,"is_primary": boolean,"parent_resume_id": string | null,"parse_error": string | null,"parse_status": Database["public"]['Enums']["resume_parse_status"],"storage_path": string | null,"target_job_id": string | null,"title": string,"updated_at": string,"user_id": string,"verified_at": string | null
+                    "content": Json | null,"created_at": string,"extracted_text": string | null,"file_name": string | null,"file_size": number | null,"file_type": string | null,"id": string,"is_primary": boolean,"kind": string,"layout": Json | null,"parent_resume_id": string | null,"parse_error": string | null,"parse_status": Database["public"]['Enums']["resume_parse_status"],"storage_path": string | null,"tailoring": Json | null,"target_job_id": string | null,"template": string,"title": string,"updated_at": string,"user_id": string,"verified_at": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "content"?: Json | null,"created_at"?: string,"extracted_text"?: string | null,"file_name"?: string | null,"file_size"?: number | null,"file_type"?: string | null,"id"?: string,"is_primary"?: boolean,"parent_resume_id"?: string | null,"parse_error"?: string | null,"parse_status"?: Database["public"]['Enums']["resume_parse_status"],"storage_path"?: string | null,"target_job_id"?: string | null,"title": string,"updated_at"?: string,"user_id": string,"verified_at"?: string | null
+                    "content"?: Json | null,"created_at"?: string,"extracted_text"?: string | null,"file_name"?: string | null,"file_size"?: number | null,"file_type"?: string | null,"id"?: string,"is_primary"?: boolean,"kind"?: string,"layout"?: Json | null,"parent_resume_id"?: string | null,"parse_error"?: string | null,"parse_status"?: Database["public"]['Enums']["resume_parse_status"],"storage_path"?: string | null,"tailoring"?: Json | null,"target_job_id"?: string | null,"template"?: string,"title": string,"updated_at"?: string,"user_id": string,"verified_at"?: string | null
                   }
                   Update: {
-                    "content"?: Json | null,"created_at"?: string,"extracted_text"?: string | null,"file_name"?: string | null,"file_size"?: number | null,"file_type"?: string | null,"id"?: string,"is_primary"?: boolean,"parent_resume_id"?: string | null,"parse_error"?: string | null,"parse_status"?: Database["public"]['Enums']["resume_parse_status"],"storage_path"?: string | null,"target_job_id"?: string | null,"title"?: string,"updated_at"?: string,"user_id"?: string,"verified_at"?: string | null
+                    "content"?: Json | null,"created_at"?: string,"extracted_text"?: string | null,"file_name"?: string | null,"file_size"?: number | null,"file_type"?: string | null,"id"?: string,"is_primary"?: boolean,"kind"?: string,"layout"?: Json | null,"parent_resume_id"?: string | null,"parse_error"?: string | null,"parse_status"?: Database["public"]['Enums']["resume_parse_status"],"storage_path"?: string | null,"tailoring"?: Json | null,"target_job_id"?: string | null,"template"?: string,"title"?: string,"updated_at"?: string,"user_id"?: string,"verified_at"?: string | null
                   }
                   Relationships: [
                     {
@@ -309,7 +369,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "job_location_options":
+            "application_move_allowed":
+{ Args: { "p_from": Database["public"]['Enums']["application_status"],"p_to": Database["public"]['Enums']["application_status"] }; Returns: boolean
+                           },
+"job_location_options":
 { Args: Record<PropertyKey, never>; Returns: {
               "job_count": number,"location": string
             }[]
@@ -324,7 +387,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "application_status": "saved"|"applied"|"screening"|"interview"|"offer"|"accepted"|"rejected"|"withdrawn","employment_type": "full_time"|"part_time"|"contract"|"freelance"|"internship"|"unknown","experience_level": "intern"|"entry"|"mid"|"senior"|"lead"|"unknown","interview_kind": "behavioural"|"technical"|"mixed","remote_policy": "remote"|"hybrid"|"onsite"|"unknown","resume_parse_status": "pending"|"parsing"|"needs_review"|"ready"|"failed"
+            "application_status": "saved"|"applied"|"assessment"|"interview"|"offer"|"rejected","employment_type": "full_time"|"part_time"|"contract"|"freelance"|"internship"|"unknown","experience_level": "intern"|"entry"|"mid"|"senior"|"lead"|"unknown","interview_kind": "behavioural"|"technical"|"mixed","remote_policy": "remote"|"hybrid"|"onsite"|"unknown","resume_parse_status": "pending"|"parsing"|"needs_review"|"ready"|"failed"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -444,7 +507,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "application_status": ["saved", "applied", "screening", "interview", "offer", "accepted", "rejected", "withdrawn"],"employment_type": ["full_time", "part_time", "contract", "freelance", "internship", "unknown"],"experience_level": ["intern", "entry", "mid", "senior", "lead", "unknown"],"interview_kind": ["behavioural", "technical", "mixed"],"remote_policy": ["remote", "hybrid", "onsite", "unknown"],"resume_parse_status": ["pending", "parsing", "needs_review", "ready", "failed"]
+            "application_status": ["saved", "applied", "assessment", "interview", "offer", "rejected"],"employment_type": ["full_time", "part_time", "contract", "freelance", "internship", "unknown"],"experience_level": ["intern", "entry", "mid", "senior", "lead", "unknown"],"interview_kind": ["behavioural", "technical", "mixed"],"remote_policy": ["remote", "hybrid", "onsite", "unknown"],"resume_parse_status": ["pending", "parsing", "needs_review", "ready", "failed"]
           }
         }
 } as const

@@ -70,7 +70,11 @@ beforeAll(async () => {
   );
   ids.match = match.id;
   const letter = await must(
-    admin.from("cover_letters").insert({ user_id, content: "Dear team" }).select().single(),
+    admin
+      .from("cover_letters")
+      .insert({ user_id, content: "Dear team", ...letterFields })
+      .select()
+      .single(),
   );
   ids.letter = letter.id;
   const application = await must(
@@ -140,6 +144,14 @@ describe.each(privateTables)("$table", ({ table, key }) => {
   });
 });
 
+const letterFields = {
+  company: "Acme",
+  role_title: "Analyst",
+  generated_content: "Dear team",
+  prompt_version: "v1",
+  model: "test",
+};
+
 describe("writing to another user's data", () => {
   it("stops another user changing a profile", async () => {
     await bob.client.from("profiles").update({ full_name: "Hacked" }).eq("id", alice.id);
@@ -161,7 +173,7 @@ describe("writing to another user's data", () => {
     const attempts = await Promise.all([
       bob.client.from("resumes").insert({ user_id: alice.id, title: "Fake" }),
       bob.client.from("applications").insert({ user_id: alice.id, company: "X", role_title: "Y" }),
-      bob.client.from("cover_letters").insert({ user_id: alice.id }),
+      bob.client.from("cover_letters").insert({ user_id: alice.id, ...letterFields }),
       bob.client.from("interview_sessions").insert({ user_id: alice.id }),
       bob.client.from("saved_jobs").insert({ user_id: alice.id, job_id: privateJobId }),
     ]);

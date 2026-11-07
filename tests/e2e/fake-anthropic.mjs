@@ -128,6 +128,31 @@ const weakMatch = {
   ],
 };
 
+// Each fake answer tries something a real model must not get away with.
+const tailored = {
+  // dbt is missing from the CV, so it is listed but must never reach the version.
+  job_keywords: ["SQL", "Python", "dbt"],
+  summary: "Data analyst who builds SQL reporting for product teams.",
+  role_descriptions: [
+    // Google and 40% are invented: this wording must be thrown away.
+    { role_index: 0, description: "Delivered reports at Google that raised revenue by 40%." },
+  ],
+  // Rust is not in the CV: it must be ignored, not added.
+  skills_first: ["Python", "SQL", "Rust"],
+};
+
+const letter = {
+  greeting: "Dear Hiring Team,",
+  paragraphs: [
+    "I am applying for the Reporting Analyst role at Example Company. I build weekly SQL reports for the sales team.",
+    // Both invented: these sentences must be removed.
+    "I also led a team of 12 at Google. I have years of dbt experience.",
+    "I would welcome the chance to talk.",
+  ],
+  closing: "Kind regards,",
+  job_keywords: ["SQL", "dbt"],
+};
+
 function answer(body) {
   const system = body.system.map((block) => block.text).join("\n");
   const input = body.messages[0].content.map((block) => block.text).join("\n");
@@ -137,6 +162,8 @@ function answer(body) {
   let output;
   if (system.includes("structured data")) output = profile;
   else if (system.includes("review CVs")) output = analysis;
+  else if (system.includes("present their verified CV")) output = tailored;
+  else if (system.includes("write cover letters")) output = letter;
   else output = input.includes("Rust is required") ? weakMatch : strongMatch;
 
   return {

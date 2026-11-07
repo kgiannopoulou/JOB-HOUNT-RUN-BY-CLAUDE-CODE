@@ -23,16 +23,23 @@
 | `/jobs/saved` | Saved jobs | The user's saved jobs | ✅ |
 | `/jobs/new` | Add job | Add from URL or pasted text | 🔜 Not scheduled |
 | `/jobs/[id]` | Job detail | Full job page | 🔜 Not scheduled. Job cards link to matches |
-| `/jobs/[id]/cover-letter` | Cover letter | Generate and edit | 🔜 Phase 7 |
 | `/cv` | CV library | Upload and list CVs | ✅ |
 | `/cv/[id]` | CV details | Read, review and confirm details, see the analysis dashboard | ✅ |
 | `/cv/[id]/download` | Original file | Redirects to a link that expires in 60 seconds (route handler) | ✅ |
-| `/cv/[id]/tailor/[jobId]` | Tailor | Accept or reject suggestions | 🔜 Not scheduled |
+| `/cv/versions/[id]` | CV version | Review every AI change, choose a template, arrange sections, preview and edit | ✅ |
+| `/cv/versions/[id]/pdf` | Version PDF | Download a reviewed version (route handler) | ✅ |
+| `/cover-letters` | Cover letters | Generate a letter and list saved ones | ✅ |
+| `/cover-letters/[id]` | Cover letter | Review, edit, restore and delete | ✅ |
+| `/cover-letters/[id]/pdf` | Letter PDF | Download a reviewed letter (route handler) | ✅ |
 | `/matches` | Matches | Saved results, highest first, and selection for comparison | ✅ |
 | `/matches/[id]` | Match result | Score, categories, gaps, evidence and how the score was calculated | ✅ |
 | `/matches/compare` | Compare jobs | Two to four results side by side | ✅ |
-| `/applications` | Applications | Pipeline board and table | 🟡 |
-| `/applications/[id]` | Application detail | Timeline, documents, notes | 🔜 Phase 8 |
+| `/applications` | Board | Kanban board, search, filters, what is due | ✅ |
+| `/applications/list` | List | The same data, sortable | ✅ |
+| `/applications/calendar` | Calendar | Month grid on desktop, agenda on phones | ✅ |
+| `/applications/stats` | Statistics | Rates, stages reached, weekly activity | ✅ |
+| `/applications/new` | Add application | For a job found elsewhere, with a duplicate warning | ✅ |
+| `/applications/[id]` | Application detail | Details, recruiter, outcome, documents sent, interviews, reminders, history | ✅ |
 | `/interview` | Interview preparation | Sessions and question sets | 🟡 |
 | `/interview/[id]` | Practice session | Answer and get feedback | 🔜 Phase 9 |
 | `/analytics` | Analytics | Funnel, trends, skill gaps | 🔜 Phase 10 |

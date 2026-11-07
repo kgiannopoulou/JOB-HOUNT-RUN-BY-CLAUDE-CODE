@@ -9,9 +9,9 @@ import {
   Reply,
 } from "lucide-react";
 
+import { DueItems } from "@/components/applications/due-items";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
-import { PhaseBadge } from "@/components/shared/phase-badge";
 import { StatCard } from "@/components/shared/stat-card";
 import {
   Card,
@@ -20,6 +20,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { applicationStats } from "@/lib/applications/stats";
+import {
+  listApplicationEvents,
+  listApplications,
+  listDueReminders,
+  listUpcomingInterviews,
+} from "@/server/applications/queries";
 import { requireUser } from "@/server/auth/user";
 import { createClient } from "@/server/supabase/server";
 
@@ -50,7 +57,6 @@ const setupSteps = [
     title: "Track an application",
     text: "Keep a record of what you sent and when.",
     href: "/applications",
-    phase: 8,
   },
 ];
 
@@ -58,13 +64,17 @@ export default async function DashboardPage() {
   const user = await requireUser("/dashboard");
   const supabase = await createClient();
 
+  const today = new Date().toISOString().slice(0, 10);
   const count = { count: "exact", head: true } as const;
-  const [profile, saved, applications, interviews] = await Promise.all([
+  const [profile, saved, applications, events, reminders, interviews] = await Promise.all([
     supabase.from("profiles").select("full_name").eq("id", user.id).single(),
     supabase.from("saved_jobs").select("job_id", count),
-    supabase.from("applications").select("id", count),
-    supabase.from("interview_sessions").select("id", count),
+    listApplications(supabase),
+    listApplicationEvents(supabase),
+    listDueReminders(supabase, today),
+    listUpcomingInterviews(supabase, today),
   ]);
+  const stats = applicationStats(applications, events, today);
 
   const firstName = profile.data?.full_name.split(" ")[0];
 
@@ -87,19 +97,24 @@ export default async function DashboardPage() {
         />
         <StatCard
           label="Applications"
-          value={String(applications.count ?? 0)}
+          value={String(stats.applied)}
           hint="Sent so far"
           icon={KanbanSquare}
         />
         <StatCard
           label="Interviews"
-          value={String(interviews.count ?? 0)}
-          hint="Practice sessions so far"
+          value={String(stats.interviewed)}
+          hint="Applications that reached an interview"
           icon={MessagesSquare}
         />
         <StatCard
           label="Response rate"
-          hint="Shown once you have applications"
+          value={stats.responseRate === null ? undefined : `${stats.responseRate}%`}
+          hint={
+            stats.applied
+              ? `${stats.responded} of ${stats.applied} applications got a reply`
+              : "Shown once you have applications"
+          }
           icon={Reply}
         />
       </section>
@@ -131,11 +146,6 @@ export default async function DashboardPage() {
                         {step.text}
                       </span>
                     </span>
-                    {step.phase && (
-                      <span className="hidden sm:block">
-                        <PhaseBadge phase={step.phase} />
-                      </span>
-                    )}
                     <ChevronRight
                       className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
                       aria-hidden
@@ -147,11 +157,23 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <EmptyState
-          icon={CalendarClock}
-          title="Nothing to follow up yet"
-          description="Follow-ups and interview dates will appear here when you start tracking applications."
-        />
+        {reminders.length + interviews.length > 0 ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Coming up</CardTitle>
+              <CardDescription>Reminders due and your next interviews.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DueItems reminders={reminders} interviews={interviews} today={today} />
+            </CardContent>
+          </Card>
+        ) : (
+          <EmptyState
+            icon={CalendarClock}
+            title="Nothing to follow up yet"
+            description="Follow-ups and interview dates will appear here when you start tracking applications."
+          />
+        )}
       </div>
     </>
   );

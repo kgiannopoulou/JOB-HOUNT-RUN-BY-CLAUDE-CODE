@@ -7,6 +7,9 @@ PostgreSQL on Supabase. This document describes the schema as built. The source 
 | `20261106100000_core_schema.sql` | Enums, tables, foreign keys, indexes, triggers |
 | `20261106100100_row_level_security.sql` | Row level security policies and grants |
 | `20261106100200_job_discovery.sql` | Saved jobs, sync history, search functions |
+| `20261107100000_cv_analyzer.sql` | CV storage, analyses, AI budget |
+| `20261107110000_cv_builder.sql` | CV versions, layouts, cover letter columns |
+| `20261107120000_application_tracker.sql` | Board stages, interviews, reminders, history, status rules |
 
 ## 3.1 Entity relationships
 
@@ -28,6 +31,9 @@ erDiagram
     resumes ||--o{ applications : "sent with"
     cover_letters ||--o{ applications : "sent with"
     applications ||--o{ interview_sessions : prepares
+    applications ||--o{ application_interviews : schedules
+    applications ||--o{ application_reminders : "reminds about"
+    applications ||--o{ application_events : records
     interview_sessions ||--o{ interview_questions : contains
 ```
 
@@ -93,7 +99,7 @@ Title and company also have trigram indexes for partial matches.
 
 ### Resumes
 
-**`resumes`**: a tailored version is a row that points at its parent and target job.
+**`resumes`**: holds uploaded CVs and the versions built from them. A version is a separate row, so the original never changes.
 
 | Column | Type | Notes |
 | ------ | ---- | ----- |
@@ -108,8 +114,12 @@ Title and company also have trigram indexes for partial matches.
 | `verified_at` | timestamptz | When the user confirmed `content`. Analysis and matching require it |
 | `parse_error` | text | A message safe to show the user |
 | `is_primary` | boolean | Partial unique index: one primary per user |
-| `parent_resume_id` | uuid | Same-user composite foreign key |
+| `kind` | text | `original` or `version`. Users cannot change it. A version has no file and cannot be the main CV |
+| `parent_resume_id` | uuid | Same-user composite foreign key. Goes null if the source is deleted, and the version stays |
 | `target_job_id` | uuid FK | |
+| `template` | text | `classic`, `modern` or `compact` |
+| `layout` | jsonb | Section order, headings, visibility and custom sections |
+| `tailoring` | jsonb | What the AI changed, rejected and matched. Users cannot change it |
 
 ### AI results and documents
 
@@ -119,7 +129,7 @@ Title and company also have trigram indexes for partial matches.
 
 **`ai_usage`**: `user_id`, `feature`, `status`, `model`, token counts. One row per AI call. `reserve_ai_call()` checks the daily limit and records the call in one locked step, so parallel requests cannot pass the limit. Only the service role can call it.
 
-**`cover_letters`**: `user_id`, `job_id`, `resume_id`, `tone`, `content`, `is_edited`.
+**`cover_letters`**: `user_id`, `job_id`, `resume_id`, `company`, `role_title`, `tone`, `content`, `generated_content`, `removed_sentences`, `is_edited`, `reviewed_at`, `prompt_version`, `model`. One row per generation. Users can change only `content`, `is_edited` and `reviewed_at`, so what the AI wrote stays on record. The company and position are copied, so a letter still reads correctly if the job is removed.
 
 ### Applications
 
@@ -131,10 +141,19 @@ Title and company also have trigram indexes for partial matches.
 | `user_id` | uuid FK | |
 | `job_id` | uuid FK | Null for roles tracked by hand. Partial unique index: one application per job per user |
 | `company`, `role_title` | text | Copied, so history survives if the job is removed |
-| `status` | enum | `saved`, `applied`, `screening`, `interview`, `offer`, `accepted`, `rejected`, `withdrawn` |
-| `applied_at`, `next_action_at` | timestamptz | |
+| `status` | enum | `saved`, `applied`, `assessment`, `interview`, `offer`, `rejected`. Moves are checked by a trigger |
+| `applied_at` | date | Required past `saved` |
+| `job_url` | text | `http` or `https` only |
 | `resume_id`, `cover_letter_id` | uuid | Same-user composite foreign keys |
 | `notes` | text | |
+| `recruiter_name`, `recruiter_email`, `recruiter_phone` | text | |
+| `offer_details`, `offer_deadline`, `rejection_reason` | text, date, text | |
+
+**`application_interviews`**: `application_id`, `scheduled_at` (no time zone, kept as entered), `kind`, `location`, `interviewer`, `notes`.
+
+**`application_reminders`**: `application_id`, `title`, `due_on`, `completed_at`. Shown in the app only.
+
+**`application_events`**: `application_id`, `kind` (`created`, `status_changed`, `interview_added`), `from_status`, `to_status`. Append-only and written by triggers.
 
 ### Interview preparation
 
@@ -145,10 +164,6 @@ Title and company also have trigram indexes for partial matches.
 ### Notifications
 
 **`notifications`**: `user_id`, `type`, `title`, `body`, `link`, `read_at`. Partial index on unread rows.
-
-### Added in later phases
-
-`application_events` (Phase 8) is planned and does not exist yet.
 
 ## 3.3 Keeping each user's data private
 
@@ -168,8 +183,10 @@ Wrapping `auth.uid()` in a `select` lets Postgres evaluate it once per query rat
 | Table | Visitor | Signed-in user | Server |
 | ----- | ------- | -------------- | ------ |
 | `profiles`, `user_preferences` | None | Read and update own | All |
-| `cover_letters`, `applications`, `interview_sessions`, `interview_questions` | None | All on own | All |
-| `resumes` | None | All on own, but updates are limited to `title`, `content`, `parse_status`, `parse_error`, `verified_at` and `is_primary` | All |
+| `applications`, `application_interviews`, `application_reminders`, `interview_sessions`, `interview_questions` | None | All on own | All |
+| `cover_letters` | None | All on own, but updates are limited to `content`, `is_edited` and `reviewed_at` | All |
+| `application_events` | None | Read own | All |
+| `resumes` | None | All on own, but updates are limited to `title`, `content`, `parse_status`, `parse_error`, `verified_at`, `is_primary`, `template` and `layout` | All |
 | `saved_jobs` | None | Read, add and remove own | All |
 | `job_matches`, `cv_analyses` | None | Read and delete own | All |
 | `ai_usage` | None | Read own | All |
@@ -191,6 +208,9 @@ The server's secret key bypasses RLS. It is used in the job sync route and to wr
 | `set_updated_at()` | Maintains `updated_at` |
 | `search_jobs(...)` | All job filters, sorting and pagination. Runs as the caller, so RLS applies. Page size is capped at 50 |
 | `job_location_options()` | Real locations for the filter suggestions |
+| `application_move_allowed()` | The allowed status moves. Must match `allowedMoves` in `src/lib/applications/status.ts` |
+| `check_application_move()` | Trigger that refuses any other move, whatever the caller |
+| `record_application_event()`, `record_interview_event()` | Triggers that write the history. Run as definer, because users cannot write to it |
 
 ## 3.5 Storage
 

@@ -70,7 +70,7 @@ export async function uploadCv(_: ActionState, formData: FormData): Promise<Acti
   const { count, error: countError } = await supabase
     .from("resumes")
     .select("id", { count: "exact", head: true })
-    .is("parent_resume_id", null);
+    .eq("kind", "original");
   if (countError) return errorState("The upload failed. Please try again.");
   if ((count ?? 0) >= MAX_CVS_PER_USER) {
     return errorState(`You can keep up to ${MAX_CVS_PER_USER} CVs. Delete one first.`);
@@ -226,6 +226,7 @@ export async function saveVerifiedProfile(
       verified_at: new Date().toISOString(),
     })
     .eq("id", id)
+    .eq("kind", "original")
     .select("id");
   if (error || data.length === 0) return errorState("These details could not be saved.");
 
@@ -295,6 +296,9 @@ export async function setPrimaryCv(_: ActionState, formData: FormData): Promise<
   const user = await signedInUser(`/cv/${id}`);
 
   const supabase = await createClient();
+  const resume = await getResume(supabase, id);
+  if (resume?.kind !== "original") return errorState("This CV could not be found.");
+
   const cleared = await supabase
     .from("resumes")
     .update({ is_primary: false })
@@ -322,6 +326,7 @@ export async function deleteCv(_: ActionState, formData: FormData): Promise<Acti
     if (error) return errorState("This CV could not be deleted. Please try again.");
   }
   // Its analyses and match results are removed with it by the foreign keys.
+  // Versions made from it are separate documents, so they stay.
   const { error } = await supabase.from("resumes").delete().eq("id", id);
   if (error) return errorState("This CV could not be deleted. Please try again.");
 

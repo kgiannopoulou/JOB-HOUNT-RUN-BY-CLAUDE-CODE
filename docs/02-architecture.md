@@ -118,8 +118,8 @@ The default for every feature is **Claude Opus 5.5** (`claude-opus-5-5`), read f
 | CV parsing (text read from the file on the server) | Structured | low | Request, started by the user |
 | CV analysis | Structured | medium | Request, cached per verified profile |
 | Job matching (requirements and evidence, no score) | Structured | medium | Request, cached per job and CV content |
-| CV tailoring suggestions | Structured | high | Request |
-| Cover letter | Text | high | Streamed |
+| CV tailoring | Structured | medium | Request, a new saved version each time |
+| Cover letter | Structured | medium | Request, a new saved letter each time |
 | Interview questions | Structured | medium | Request |
 | Answer feedback | Structured | medium | Streamed |
 
@@ -149,6 +149,30 @@ The model never produces a number. It lists each requirement with a quote from t
 | Bands | Strong from 75, moderate from 50, otherwise limited. No checkable requirements: no score |
 
 These are product choices, not validated predictions. The score is never described as a chance of being hired.
+
+### Generated documents
+
+"Never fabricate" is enforced in code as well as in the prompt, in `src/lib/cv/tailor.ts` and `src/lib/letters/letter.ts`.
+
+| Layer | CV version | Cover letter |
+| ----- | ---------- | ------------ |
+| What the AI can return | A summary, role descriptions, an order for existing skills, and the job's keywords. There is no field for titles, employers, dates or qualifications | A greeting, paragraphs, a closing and the job's keywords. The candidate's name is added by code, and the AI is never given it |
+| Check on each piece of text | Any name or number missing from the verified CV, and any job keyword the CV lacks, rejects the wording. The verified text is kept. A number must come from the same role | The same check, sentence by sentence. A failing sentence is removed. The company and position are allowed |
+| Skills | Reordering only. A skill the CV does not list is ignored, and none are dropped | Not applicable |
+| Shown to the user | Every change, before and after, every rejected suggestion, and the keywords found and missing | Every removed sentence and why, and warnings if the text names something the CV lacks |
+| Gate | A tailored version cannot be exported until its owner confirms it | A letter cannot be exported until its owner confirms it. Going back to the generated text clears that |
+
+These checks catch names, numbers and the job's own terms. They cannot catch a false claim in plain words, such as "led" for "helped with", or a false name that opens a sentence, because capitalised sentence openers are skipped. The prompt forbids those, and the required human review is the last line of defence.
+
+### PDF export
+
+`src/server/export/pdf.tsx` renders PDFs with `@react-pdf/renderer`, on request, inside a route that checks the session. Nothing is stored. The Noto fonts in `assets/fonts` are embedded because the fonts built into PDF readers have no Greek letters. They cover Latin, Greek and Cyrillic. Any other script is found first and blocks the export with a message, rather than printing empty boxes. All templates use one column and real text, so applicant tracking systems can read them. The on-screen preview and the PDF both render `buildCvDocument`, so their content cannot differ.
+
+### Application tracking
+
+The allowed status moves are one table in `src/lib/applications/status.ts`, repeated in the database as `application_move_allowed()`. A test compares all 36 pairs. Triggers write the history, so no code path can skip it. Moves update only if the status is still the one the page showed, so a stale tab cannot overwrite a newer change.
+
+Interview times are stored without a time zone, and reminders and application dates are calendar dates. What the user typed is what they see, in any zone. "Today" is worked out in UTC, so a reminder can change state up to three hours late in Athens.
 
 ### Cost control
 

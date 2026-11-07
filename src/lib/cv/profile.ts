@@ -188,6 +188,9 @@ export function profileWithoutContact(profile: CvProfile) {
   };
 }
 
+/** What a generated text is checked against. The AI never sees contact details. */
+export const profileFacts = (profile: CvProfile) => ({ ...profile, contact: null });
+
 type YearMonth = { year: number; month: number };
 
 function parseDate(value: string): YearMonth | null {

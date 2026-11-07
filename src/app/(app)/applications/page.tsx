@@ -1,23 +1,44 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 
+import { ApplicationFiltersForm } from "@/components/applications/application-filters";
+import { ApplicationsTabs } from "@/components/applications/applications-tabs";
+import { Board } from "@/components/applications/board";
+import { DueItems } from "@/components/applications/due-items";
 import { PageHeader } from "@/components/shared/page-header";
-import { PhaseBadge } from "@/components/shared/phase-badge";
+import { Button } from "@/components/ui/button";
+import { addDays } from "@/lib/applications/calendar";
+import {
+  filterApplications,
+  hasActiveFilters,
+  parseApplicationFilters,
+} from "@/lib/applications/filters";
+import {
+  listApplications,
+  listDueReminders,
+  listUpcomingInterviews,
+} from "@/server/applications/queries";
 import { requireUser } from "@/server/auth/user";
-import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/server/supabase/server";
 
 export const metadata: Metadata = { title: "Applications" };
 
-const stages = [
-  "Saved",
-  "Applied",
-  "Screening",
-  "Interview",
-  "Offer",
-  "Closed",
-];
+const REMINDER_WINDOW_DAYS = 3;
 
-export default async function ApplicationsPage() {
+export default async function ApplicationsPage({ searchParams }: PageProps<"/applications">) {
   await requireUser("/applications");
+  const filters = parseApplicationFilters(await searchParams);
+
+  const supabase = await createClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const soon = addDays(today, REMINDER_WINDOW_DAYS);
+  const [applications, reminders, interviews] = await Promise.all([
+    listApplications(supabase),
+    listDueReminders(supabase, soon),
+    listUpcomingInterviews(supabase, today, 3),
+  ]);
+  const shown = filterApplications(applications, filters);
 
   return (
     <>
@@ -25,32 +46,24 @@ export default async function ApplicationsPage() {
         title="Applications"
         description="Follow every application from saved to offer, with a record of what you sent."
       >
-        <PhaseBadge phase={8} />
+        <Button asChild size="lg">
+          <Link href="/applications/new">
+            <Plus data-icon="inline-start" /> Add application
+          </Link>
+        </Button>
       </PageHeader>
 
-      <div
-        role="region"
-        aria-label="Application pipeline"
-        tabIndex={0}
-        className="-mx-4 overflow-x-auto px-4 pb-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:mx-0 md:px-0"
-      >
-        <ul className="flex min-w-max gap-3 xl:grid xl:min-w-0 xl:grid-cols-6">
-          {stages.map((stage) => (
-            <li
-              key={stage}
-              className="flex w-52 flex-col gap-3 rounded-xl bg-muted/60 p-3 xl:w-auto"
-            >
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium">{stage}</h2>
-                <Badge variant="secondary">0</Badge>
-              </div>
-              <div className="flex h-40 items-center justify-center rounded-lg border border-dashed px-3 text-center text-xs text-muted-foreground lg:h-72">
-                No applications
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <ApplicationsTabs current="/applications" />
+      <DueItems reminders={reminders} interviews={interviews} today={today} />
+      <ApplicationFiltersForm filters={filters} action="/applications" />
+
+      {hasActiveFilters(filters) && (
+        <p role="status" className="text-sm text-muted-foreground">
+          Showing {shown.length} of {applications.length} applications.
+        </p>
+      )}
+
+      <Board applications={shown} />
     </>
   );
 }

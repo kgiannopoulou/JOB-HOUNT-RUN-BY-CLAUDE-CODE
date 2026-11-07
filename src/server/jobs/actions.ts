@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { safeRedirectPath } from "@/lib/routes";
+import { addJobToBoard, removeUntouchedFromBoard } from "@/server/applications/store";
 import { getCurrentUser } from "@/server/auth/user";
 import { createClient } from "@/server/supabase/server";
 
@@ -41,6 +42,10 @@ export async function toggleSavedJob(formData: FormData) {
           );
   if (error) throw new Error("The job could not be updated.");
 
+  if (saved === "true") await removeUntouchedFromBoard(supabase, jobId);
+  else await addJobToBoard(supabase, user.id, jobId);
+
   revalidatePath("/jobs", "layout");
+  revalidatePath("/applications", "layout");
   revalidatePath("/dashboard");
 }

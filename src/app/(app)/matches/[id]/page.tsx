@@ -71,6 +71,17 @@ export default async function MatchPage({ params }: PageProps<"/matches/[id]">) 
         <Link href="/matches">Back to all matches</Link>
       </Button>
 
+      {job && (
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="lg">
+            <Link href={`/cv?job=${match.job_id}#new-version`}>Tailor my CV</Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href={`/cover-letters?job=${match.job_id}`}>Write a cover letter</Link>
+          </Button>
+        </div>
+      )}
+
       {stale && job && (
         <div role="status" className="flex flex-wrap items-center gap-3 rounded-lg border p-3 text-sm">
           <p className="flex-1">Your CV has changed since this comparison was made.</p>

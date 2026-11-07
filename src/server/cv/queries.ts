@@ -28,6 +28,7 @@ export async function getMatchingResume(supabase: Client) {
   const { data, error } = await supabase
     .from("resumes")
     .select("id, title, content, verified_at, is_primary")
+    .eq("kind", "original")
     .eq("parse_status", "ready")
     .not("verified_at", "is", null)
     .order("is_primary", { ascending: false })
